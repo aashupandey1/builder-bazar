@@ -1,0 +1,8 @@
+{
+  "name": "Builder Bazar Marketing Studio",
+  "short_name": "BuilderBazar",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

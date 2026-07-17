@@ -1,0 +1,43 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axiosClient from '../../../api/axiosClient';
+import { ENDPOINTS } from '../../../api/endpoints';
+import logo from '../../../assets/logos/logo.png';
+import './Header.css';
+
+export default function Header({ title = 'Marketing Studio' }) {
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = () => {
+      axiosClient.get(ENDPOINTS.NOTIFICATIONS).then((res) => {
+        setUnreadCount(res.data.data.filter((n) => !n.is_read).length);
+      });
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000); // ponytail: polling, socket.io not wired yet
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <header className="header">
+      <div className="header__brand">
+        <div className="header__logo">
+          <img src={logo} alt="Builder Bazar" className="header__logo-img" />
+        </div>
+        <h1 className="header__title">{title}</h1>
+      </div>
+
+      <button className="header__bell" aria-label="Notifications" onClick={() => navigate('/notifications')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13.7 21a2 2 0 01-3.4 0" strokeLinecap="round" />
+        </svg>
+        {unreadCount > 0 && (
+          <span className="header__bell-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+        )}
+      </button>
+    </header>
+  );
+}

@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install client deps
+        run: cd client && npm install
+      - name: Build client
+        run: cd client && npm run build
+      - name: Install server deps
+        run: cd server && npm install
+      - name: Run server tests
+        run: cd server && npm test

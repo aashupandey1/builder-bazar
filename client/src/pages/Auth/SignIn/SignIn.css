@@ -1,0 +1,5 @@
+.auth { max-width: 360px; margin: 15vh auto 0; padding: 32px 24px; text-align: center; }
+.auth__welcome { margin: 0 0 8px; }
+.auth__subtext { margin: 0 0 32px; color: #666; }
+.auth__google-btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; color: #222; font-weight: 500; }
+.auth__google-btn:hover { background: #f7f7f7; }
