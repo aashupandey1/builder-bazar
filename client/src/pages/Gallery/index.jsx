@@ -35,12 +35,12 @@ export default function Gallery() {
         <button className="gallery__share" aria-label="Share">⤴</button>
       </div>
 
-      {!location.state?.tab && !location.state?.projectId && (
+      {/* {!location.state?.tab && !location.state?.projectId && (
         <div className="gallery__hero" onClick={() => navigate('/preview')}>
           <div className="gallery__hero-image" />
           <button className="gallery__hero-play" aria-label="Play">▶</button>
         </div>
-      )}
+      )} */}
 
       <div className="gallery__tabs">
         {TABS.map((t) => (

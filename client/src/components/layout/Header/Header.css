@@ -30,6 +30,12 @@
   margin: 0;
 }
 
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* jitna gap chahiye utna yahan control karo */
+}
+
 .header__bell {
   position: relative;
   width: 40px;
@@ -63,6 +69,25 @@
 }
 
 .header__bell svg {
+  width: 20px;
+  height: 20px;
+}
+
+.header__admin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f4f9;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* margin-left: 8px; */
+}
+
+.header__admin svg {
   width: 20px;
   height: 20px;
 }

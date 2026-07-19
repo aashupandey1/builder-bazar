@@ -66,7 +66,12 @@ export default function Projects() {
             className="projects__card"
             onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
           >
-            <div className="projects__thumb" />
+            <div
+              className="projects__thumb"
+              style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+            >
+              {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
+            </div>
             <div className="projects__info">
               <p className="projects__name">{p.name}</p>
               <p className="projects__location">{p.address}</p>

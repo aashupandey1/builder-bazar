@@ -1,0 +1,112 @@
+.admin-add-new {
+    padding: 16px;
+    padding-bottom: 32px;
+}
+
+.add-new__option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: none;
+    background: #f8f9fc;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f1a2b;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.15s ease;
+}
+
+.add-new__option svg:first-child {
+    color: #2f5fe0;
+    flex-shrink: 0;
+}
+
+.add-new__option:hover {
+    background: #f1f4f9;
+}
+
+.add-new__option--open {
+    background: #eef1ff;
+    color: #2f5fe0;
+    border-radius: 14px 14px 0 0;
+    margin-bottom: 0;
+}
+
+.add-new__chevron {
+    margin-left: auto;
+    color: #9aa4b2;
+    transition: transform 0.15s ease;
+}
+
+.add-new__chevron--open {
+    transform: rotate(180deg);
+    color: #2f5fe0;
+}
+
+.admin-add-new .upload-card {
+    border-radius: 0 0 14px 14px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.upload-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8f9fc;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.upload-card input[type='text'],
+.upload-card select {
+    border: 1px solid #e5e9f2;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 13px;
+    color: #0f1a2b;
+    background: #ffffff;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.upload-card__file {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px dashed #9aa4b2;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 13px;
+    color: #9aa4b2;
+    cursor: pointer;
+}
+
+.upload-card__submit {
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #2f5fe0;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.upload-card__status {
+    font-size: 12px;
+    color: #9aa4b2;
+    margin: 0;
+}
+.upload-card__section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9aa4b2;
+  text-transform: uppercase;
+  margin: 4px 0 0;
+}

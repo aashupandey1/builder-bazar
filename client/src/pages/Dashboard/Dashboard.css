@@ -31,7 +31,7 @@
 .dashboard__hero-content {
   position: relative;
   z-index: 2;
-  padding: 250px 24px 24px;
+  padding: 275px 24px 24px;
   color: white;
   height: auto;
 }
@@ -157,6 +157,7 @@
   height: 130px;
   border-radius: 14px;
   background: linear-gradient(135deg, #16305c, #2f5fe0);
+  position: relative;
 }
 
 .dashboard__card-image img,
@@ -165,6 +166,22 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.dashboard__card-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+  color: #fff;
+  pointer-events: none;
 }
 
 .dashboard__card-title {

@@ -8,7 +8,7 @@ const errorHandler = require('./core/middleware/error');
 const auth = require('./core/middleware/auth');
 
 const app = express();
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());

@@ -1,0 +1,15 @@
+.admin-coming-soon {
+  padding: 60px 20px;
+  text-align: center;
+}
+.admin-coming-soon h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f1a2b;
+  margin: 0 0 8px;
+}
+.admin-coming-soon p {
+  font-size: 13px;
+  color: #9aa4b2;
+  margin: 0;
+}

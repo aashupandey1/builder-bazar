@@ -28,15 +28,25 @@ const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [visibleCount, setVisibleCount] = useState(PREVIEW_COUNT);
   const [search, setSearch] = useState('');
   const [trending, setTrending] = useState([]);
+  const [trendingOffset, setTrendingOffset] = useState(0);
+  const [hasMoreTrending, setHasMoreTrending] = useState(true);
   const [hero, setHero] = useState(null);
 
+  const loadTrending = (currentOffset, replace = false) => {
+    axiosClient.get(ENDPOINTS.TEMPLATES, { params: { sort: 'trending', limit: PREVIEW_COUNT, offset: currentOffset } })
+      .then((res) => {
+        const rows = res.data.data;
+        setTrending((prev) => (replace ? rows : [...prev, ...rows]));
+        setHasMoreTrending(rows.length === PREVIEW_COUNT);
+        setTrendingOffset(currentOffset + rows.length);
+      })
+      .catch(() => setHasMoreTrending(false));
+  };
+
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.TEMPLATES, { params: { sort: 'trending' } })
-      .then((res) => setTrending(res.data.data))
-      .catch(() => setTrending([]));
+    loadTrending(0, true);
 
     axiosClient.get(ENDPOINTS.TEMPLATES, { params: { featured: true } })
       .then((res) => setHero(res.data.data[0] || null))
@@ -46,13 +56,8 @@ export default function Dashboard() {
   const filteredTrending = trending.filter((item) =>
     item.title.toLowerCase().includes(search.trim().toLowerCase())
   );
-  const visibleTrending = filteredTrending.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredTrending.length;
 
-  const handleSearchChange = (val) => {
-    setSearch(val);
-    setVisibleCount(PREVIEW_COUNT);
-  };
+  const handleSearchChange = (val) => setSearch(val);
 
   return (
     <div className="dashboard">
@@ -61,7 +66,12 @@ export default function Dashboard() {
 
       <div className="dashboard__hero">
         {hero && isVideoTag(hero.type) ? (
-          <video className="dashboard__hero-video" src={hero.file_url} autoPlay muted loop playsInline />
+          <video
+            className="dashboard__hero-video"
+            src={hero.file_url}
+            autoPlay loop playsInline
+            ref={(node) => { if (node) node.muted = true; }}
+          />
         ) : hero ? (
           <img className="dashboard__hero-video" src={hero.file_url} alt={hero.title} />
         ) : (
@@ -80,16 +90,14 @@ export default function Dashboard() {
               <p className="dashboard__hero-eyebrow">YOU DESERVE</p>
             </>
           )}
+           {hero && (
           <button
-            className="dashboard__hero-btn"
-            onClick={() =>
-              hero?.project_id
-                ? navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } })
-                : navigate('/gallery')
-            }
-          >
-            View Project
-          </button>
+              className="dashboard__hero-btn"
+              onClick={() => navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } })}
+            >
+              View Project
+            </button>
+          )}
         </div>
       </div>
 
@@ -113,7 +121,7 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard__trending">
-        {visibleTrending.map((item) => (
+        {filteredTrending.map((item, index) => (
           <button
             key={item.id}
             className="dashboard__card"
@@ -125,7 +133,17 @@ export default function Dashboard() {
             <span className="dashboard__card-tag">{item.type}</span>
             <div className="dashboard__card-image">
               {isVideoTag(item.type) ? (
-                <video src={item.file_url} autoPlay muted loop playsInline />
+                <>
+                  <video
+                    src={item.file_url}
+                    loop playsInline
+                    preload="metadata"
+                    ref={(node) => { if (node) node.muted = true; }}
+                  />
+                  <span className="dashboard__card-play">
+                    <PlayIcon size={22} />
+                  </span>
+                </>
               ) : (
                 <img src={item.file_url} alt={item.title} />
               )}
@@ -136,8 +154,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {hasMore && (
-        <button className="dashboard__view-more" onClick={() => setVisibleCount((c) => c + PREVIEW_COUNT)}>
+      {hasMoreTrending && (
+        <button className="dashboard__view-more" onClick={() => loadTrending(trendingOffset)}>
           View More
         </button>
       )}
