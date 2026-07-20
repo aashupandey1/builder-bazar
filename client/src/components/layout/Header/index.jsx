@@ -42,7 +42,7 @@ export default function Header({ title = 'Marketing Studio' }) {
           )}
         </button>
         {user?.role === 'admin' && (
-          <button className="header__admin" aria-label="Admin panel" onClick={() => navigate('/admin/templates')}>
+          <button className="header__admin" aria-label="Admin panel" onClick={() => navigate('/admin/dashboard')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
