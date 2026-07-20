@@ -1,7 +1,7 @@
-// Multer config: only image/video/audio, 50MB cap, random filenames (no user input in path)
+// Multer config: only image/video/audio, 50MB cap, uploads go straight to Cloudinary
 const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('./cloudinary');
 
 const ALLOWED_MIME_TO_EXT = {
   'image/jpeg': '.jpg',
@@ -13,9 +13,12 @@ const ALLOWED_MIME_TO_EXT = {
   'audio/wav': '.wav',
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../../storage/media')),
-  filename: (req, file, cb) => cb(null, `${uuidv4()}${ALLOWED_MIME_TO_EXT[file.mimetype]}`),
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'builder-bazar/media',
+    resource_type: 'auto',
+  },
 });
 
 const fileFilter = (req, file, cb) => {

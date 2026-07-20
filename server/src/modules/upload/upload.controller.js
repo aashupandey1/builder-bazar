@@ -8,7 +8,7 @@ module.exports.create = async (req, res, next) => {
     const media = await service.create({
       userId: req.user.id,
       type: req.body.type,
-      fileUrl: `/storage/media/${req.file.filename}`,
+      fileUrl: req.file.path,
     });
     res.status(201).json({ success: true, data: media });
   } catch (err) {

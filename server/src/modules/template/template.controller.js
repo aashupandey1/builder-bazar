@@ -1,6 +1,6 @@
 const service = require('./template.service');
 const AppError = require('../../core/errors/AppError');
-const fs = require('fs/promises');
+const cloudinary = require('../../core/config/cloudinary');
 const path = require('path');
 
 const SERVER_BASE_URL = process.env.SERVER_BASE_URL || '';
@@ -61,7 +61,7 @@ module.exports.create = async (req, res, next) => {
           type: req.body.type,
           title: req.body.title,
           subtitle: req.body.subtitle,
-          fileUrl: `${SERVER_BASE_URL}/storage/media/${file.filename}`,
+          fileUrl: file.path,
           thumbnailUrl: null,
           createdBy: req.user.id,
           projectId: req.body.project_id,
@@ -91,9 +91,9 @@ module.exports.update = async (req, res, next) => {
 module.exports.remove = async (req, res, next) => {
   try {
     const removed = await service.remove(req.params.id);
-    // ponytail: best-effort cleanup — file delete fail hone se bhi response fail nahi hoga
     if (removed.file_url) {
-      fs.unlink(path.join(__dirname, '../../../storage', removed.file_url.replace('/storage/', ''))).catch(() => { });
+      const publicId = removed.file_url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+      cloudinary.uploader.destroy(publicId, { resource_type: 'auto' }).catch(() => {});
     }
     res.json({ success: true, message: 'Template deleted' });
   } catch (err) {
