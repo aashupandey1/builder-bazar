@@ -9,15 +9,24 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem('bb_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     axiosClient
       .get(ENDPOINTS.ME)
       .then((res) => setUser(res.data.data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        localStorage.removeItem('bb_token');
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const logout = async () => {
     await axiosClient.post(ENDPOINTS.LOGOUT);
+    localStorage.removeItem('bb_token');
     setUser(null);
   };
 

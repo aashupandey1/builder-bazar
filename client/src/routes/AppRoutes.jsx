@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Splash from '../pages/Splash';
-import SignIn from '../pages/Auth/SignIn';
+import OAuthSuccess from '../pages/OAuthSuccess';
 import Dashboard from '../pages/Dashboard';
 import Projects from '../pages/Projects';
 import Gallery from '../pages/Gallery';
@@ -27,13 +27,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Splash />} />
-
-      {/* Logged-in users get bounced to /dashboard if they hit these */}
-      <Route element={<PublicRoutes />}>
-        <Route path="/login" element={<SignIn />} />
-        <Route path="/register" element={<SignIn />} />
-      </Route>
-
+      <Route path="/oauth-success" element={<OAuthSuccess />} />
+      
       {/* Logged-out users get bounced to /login for everything below */}
       <Route element={<PrivateRoutes />}>
         <Route path="/dashboard" element={<Dashboard />} />

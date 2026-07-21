@@ -39,7 +39,10 @@ const OPTIONS = [
 export default function ShareModal(props) {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const shareUrl = props.shareUrl || state?.file_url || window.location.href;
+  const fileUrl = state?.file_url || props.shareUrl || window.location.href;
+  const shareUrl = state?.id
+    ? `${import.meta.env.VITE_SERVER_BASE_URL}/share/template/${state.id}`
+    : fileUrl;
   const shareText = props.shareText || state?.title || "Check this out!";
 
   const SHARE_LINKS = {
@@ -52,13 +55,13 @@ export default function ShareModal(props) {
     if (name === "WhatsApp" || name === "Facebook") {
       window.open(SHARE_LINKS[name.toLowerCase()], "_blank", "noopener,noreferrer");
     } else if (name === "Download") {
-      fetch(shareUrl)
+      fetch(fileUrl)
         .then((res) => res.blob())
         .then((blob) => {
           const blobUrl = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = blobUrl;
-          a.download = shareUrl.split("/").pop() || "download";
+          a.download = fileUrl.split("/").pop() || "download";
           a.click();
           URL.revokeObjectURL(blobUrl);
         })
