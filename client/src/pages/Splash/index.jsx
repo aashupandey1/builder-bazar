@@ -1,5 +1,5 @@
 import logo from '../../assets/logos/logo.png';
-import skyline from '../../assets/images/splash-skyline.png';
+import skyline from '../../assets/images/splash-skyline.svg';
 import "./splash.css";
 
 const GOOGLE_LOGIN_URL = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
