@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ShareModal.css';
 import {
@@ -39,6 +40,7 @@ const OPTIONS = [
 export default function ShareModal(props) {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const [sharing, setSharing] = useState(false);
   const fileUrl = state?.file_url || props.shareUrl || window.location.href;
   const shareUrl = state?.id
     ? `${import.meta.env.VITE_SERVER_BASE_URL}/share/template/${state.id}`
@@ -50,10 +52,42 @@ export default function ShareModal(props) {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
   };
 
-  const handleOption = (name, disabled) => {
-    if (disabled) return;
-    if (name === "WhatsApp" || name === "Facebook") {
-      window.open(SHARE_LINKS[name.toLowerCase()], "_blank", "noopener,noreferrer");
+  // Fetches the actual video/image and hands it to the OS share-sheet
+  // (WhatsApp Status, Instagram, etc. then receive the real file, not a link)
+  const shareFileNatively = async () => {
+    setSharing(true);
+    try {
+      const res = await fetch(fileUrl);
+      const blob = await res.blob();
+      const isVideo = blob.type.startsWith('video') || /\.(mp4|mov)$/i.test(fileUrl);
+      const fileName = fileUrl.split('/').pop() || (isVideo ? 'video.mp4' : 'image.jpg');
+      const file = new File([blob], fileName, {
+        type: blob.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+      });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: shareText, text: shareText });
+        return true;
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') return true; // user closed the share sheet, not a failure
+    } finally {
+      setSharing(false);
+    }
+    return false;
+  };
+
+  const handleOption = async (name, disabled) => {
+    if (disabled || sharing) return;
+
+    if (name === "WhatsApp") {
+      const shared = await shareFileNatively();
+      if (!shared) {
+        // device/browser doesn't support native file share (e.g. desktop) — fall back to link
+        window.open(SHARE_LINKS.whatsapp, "_blank", "noopener,noreferrer");
+      }
+    } else if (name === "Facebook") {
+      window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
     } else if (name === "Download") {
       fetch(fileUrl)
         .then((res) => res.blob())
@@ -84,7 +118,7 @@ export default function ShareModal(props) {
             className={`sharemodal__list-item ${item.disabled ? 'sharemodal__list-item--disabled' : ''}`}
             key={item.name}
             onClick={() => handleOption(item.name, item.disabled)}
-            disabled={item.disabled}
+            disabled={item.disabled || sharing}
             title={item.disabled ? 'Coming soon' : undefined}
           >
             <span className={`sharemodal__list-icon icon-${item.name.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -92,7 +126,7 @@ export default function ShareModal(props) {
             </span>
 
             <span className="sharemodal__list-text">
-              {item.name}
+              {item.name === "WhatsApp" && sharing ? "Preparing video…" : item.name}
             </span>
 
             <ChevronRight size={18} />
