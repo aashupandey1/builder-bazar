@@ -24,16 +24,26 @@
 }
 
 .header__title {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 800;
   color: #0f1a2b;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.header__subtitle {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #9aa4b2;
   margin: 0;
 }
 
 .header__actions {
   display: flex;
   align-items: center;
-  gap: 10px; /* jitna gap chahiye utna yahan control karo */
+  gap: 10px;
+  /* jitna gap chahiye utna yahan control karo */
 }
 
 .header__bell {
