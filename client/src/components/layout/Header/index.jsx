@@ -28,8 +28,10 @@ export default function Header({ title = 'Marketing Studio' }) {
         <div className="header__logo">
           <img src={logo} alt="Builder Bazar" className="header__logo-img" />
         </div>
-        <p className="header__title">BUILDER BAZAR</p>
-        <p className="header__subtitle">MARKETING STUDIO</p>
+        <div className="header__text">
+          <p className="header__title">BUILDER BAZAR</p>
+          <p className="header__subtitle">MARKETING STUDIO</p>
+        </div>
       </div>
 
       <div className="header__actions">

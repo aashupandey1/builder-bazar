@@ -23,6 +23,11 @@
   object-fit: contain;
 }
 
+.header__text {
+  display: flex;
+  flex-direction: column;
+}
+
 .header__title {
   font-size: 13px;
   font-weight: 800;
