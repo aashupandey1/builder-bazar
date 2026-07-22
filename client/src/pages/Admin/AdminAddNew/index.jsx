@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, Folder, ChevronDown } from 'lucide-react';
+import { UploadCloud, Folder, ChevronDown, Search } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
 import './AdminAddNew.css';
@@ -8,49 +8,49 @@ import './AdminAddNew.css';
 const TEMPLATE_TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
 const CATEGORIES = ['Residential', 'Commercial', 'Villa', 'Plot', 'Other'];
 
-// Inline type-or-pick field — used only in this file, so no separate component.
-function ComboField({ label, value, onChange, options, placeholder }) {
+// Search-modal field — tap opens a full search sheet, type to filter, tap a row to pick.
+function PickerField({ label, value, onChange, options, placeholder }) {
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    const onClickOutside = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
-
-  const term = value.trim().toLowerCase();
+  const term = search.trim().toLowerCase();
   const filtered = options.filter((o) => o.toLowerCase().includes(term));
   const exactMatch = options.some((o) => o.toLowerCase() === term);
   const pick = (val) => { onChange(val); setOpen(false); };
 
   return (
-    <label className="upload-card__field" ref={wrapRef} style={{ position: 'relative' }}>
-      <span>{label}</span>
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onFocus={() => setOpen(true)}
-        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
-      />
-      {open && (filtered.length > 0 || (term && !exactMatch)) && (
-        <div className="combobox__list">
-          {filtered.map((o) => (
-            <button type="button" key={o} className="combobox__option" onMouseDown={() => pick(o)}>{o}</button>
-          ))}
-          {term && !exactMatch && (
-            <button type="button" className="combobox__option combobox__option--add" onMouseDown={() => pick(value.trim())}>
-              + Add "{value.trim()}"
-            </button>
-          )}
+    <>
+      <label className="upload-card__field">
+        <span>{label}</span>
+        <button type="button" className="upload-card__picker" onClick={() => { setSearch(''); setOpen(true); }}>
+          <span className={value ? '' : 'upload-card__picker-placeholder'}>{value || placeholder}</span>
+          <ChevronDown size={16} />
+        </button>
+      </label>
+      {open && (
+        <div className="picker-overlay" onClick={() => setOpen(false)}>
+          <div className="picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="picker-sheet__search">
+              <Search size={16} />
+              <input autoFocus type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <div className="picker-sheet__list">
+              {filtered.map((o) => (
+                <button type="button" key={o} className="picker-sheet__option" onClick={() => pick(o)}>{o}</button>
+              ))}
+              {term && !exactMatch && (
+                <button type="button" className="picker-sheet__option picker-sheet__option--add" onClick={() => pick(search.trim())}>
+                  + Add "{search.trim()}"
+                </button>
+              )}
+              {!filtered.length && !term && <p className="picker-sheet__empty">Koi option nahi hai abhi</p>}
+            </div>
+          </div>
         </div>
       )}
-    </label>
+    </>
   );
-};
+}
 
 export default function AdminAddNew() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function AdminAddNew() {
   const [tplForm, setTplForm] = useState({ title: '', subtitle: '', type: 'Video', file: null });
   const [tplStatus, setTplStatus] = useState('');
 
-  const [projForm, setProjForm] = useState({ name: '', location: '', address: '', secondaryName: '', category: '', subtitle: '', files: [] });
+  const [projForm, setProjForm] = useState({ name: '', location: '', secondaryName: '', category: '', subtitle: '', files: [] });
   const [projStatus, setProjStatus] = useState('');
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [] });
 
@@ -99,7 +99,6 @@ export default function AdminAddNew() {
       const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
         name: projForm.name,
         location: projForm.location,
-        address: projForm.address,
         secondary_name: projForm.secondaryName,
         category: projForm.category,
       });
@@ -125,7 +124,7 @@ export default function AdminAddNew() {
       }
 
       setProjStatus('Project created');
-      setProjForm({ name: '', location: '', address: '', secondaryName: '', category: '', subtitle: '', files: [] });
+      setProjForm({ name: '', location: '', secondaryName: '', category: '', subtitle: '', files: [] });
       navigate('/admin/projects');
     } catch (err) {
       setProjStatus(err.response?.data?.message || 'Save failed');
@@ -162,37 +161,11 @@ export default function AdminAddNew() {
       {open === 'project' && (
         <form className="upload-card" onSubmit={handleCreateProject}>
           <div className="upload-card__grid">
-            <ComboField
-              label="Primary Name"
-              value={projForm.name}
-              onChange={(v) => setProjForm({ ...projForm, name: v })}
-              options={suggestions.names}
-              placeholder="Select primary name"
-            />
-            <ComboField
-              label="Secondary Name"
-              value={projForm.secondaryName}
-              onChange={(v) => setProjForm({ ...projForm, secondaryName: v })}
-              options={suggestions.secondaryNames}
-              placeholder="Select secondary name"
-            />
-            <ComboField
-              label="Location"
-              value={projForm.location}
-              onChange={(v) => setProjForm({ ...projForm, location: v })}
-              options={suggestions.locations}
-              placeholder="Select location"
-            />
-            <label className="upload-card__field">
-              <span>Category</span>
-              <select value={projForm.category} onChange={(e) => setProjForm({ ...projForm, category: e.target.value })}>
-                <option value="">Select category</option>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </label>
+            <PickerField label="Primary Name" value={projForm.name} onChange={(v) => setProjForm({ ...projForm, name: v })} options={suggestions.names} placeholder="Select primary name" />
+            <PickerField label="Secondary Name" value={projForm.secondaryName} onChange={(v) => setProjForm({ ...projForm, secondaryName: v })} options={suggestions.secondaryNames} placeholder="Select secondary name" />
+            <PickerField label="Location" value={projForm.location} onChange={(v) => setProjForm({ ...projForm, location: v })} options={suggestions.locations} placeholder="Select location" />
+            <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
           </div>
-
-          <input type="text" placeholder="Address (optional)" value={projForm.address} onChange={(e) => setProjForm({ ...projForm, address: e.target.value })} />
 
           <p className="upload-card__section-label">Media (optional) — is project ke liye</p>
           <input type="text" placeholder="Media subtitle (optional)" value={projForm.subtitle} onChange={(e) => setProjForm({ ...projForm, subtitle: e.target.value })} />

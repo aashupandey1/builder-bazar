@@ -127,38 +127,97 @@
     color: #0f1a2b;
 }
 
-.combobox__list {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    z-index: 10;
-    max-height: 180px;
-    overflow-y: auto;
+.upload-card__picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
     background: #ffffff;
     border: 1px solid #e5e9f2;
     border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(15, 26, 43, 0.08);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f1a2b;
+    cursor: pointer;
+    text-align: left;
 }
 
-.combobox__option {
+.upload-card__picker-placeholder {
+    color: #9aa4b2;
+    font-weight: 400;
+}
+
+.picker-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(15, 26, 43, 0.45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 15vh 16px 0;
+}
+
+.picker-sheet {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(15, 26, 43, 0.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
+}
+
+.picker-sheet__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e9f2;
+    color: #9aa4b2;
+}
+
+.picker-sheet__search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #0f1a2b;
+}
+
+.picker-sheet__list {
+    overflow-y: auto;
+}
+
+.picker-sheet__option {
     display: block;
     width: 100%;
     text-align: left;
     border: none;
+    border-bottom: 1px solid #f1f4f9;
     background: none;
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 14px;
+    font-size: 14px;
     color: #0f1a2b;
     cursor: pointer;
 }
 
-.combobox__option:hover {
+.picker-sheet__option:hover {
     background: #f1f4f9;
 }
 
-.combobox__option--add {
+.picker-sheet__option--add {
     color: #2f5fe0;
     font-weight: 600;
-    border-top: 1px solid #e5e9f2;
+}
+
+.picker-sheet__empty {
+    padding: 14px;
+    font-size: 13px;
+    color: #9aa4b2;
+    margin: 0;
 }
