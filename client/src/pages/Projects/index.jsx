@@ -74,7 +74,8 @@ export default function Projects() {
             </div>
             <div className="projects__info">
               <p className="projects__name">{p.name}</p>
-              <p className="projects__location">{p.address}</p>
+              {p.secondary_name && <p className="projects__secondary">{p.secondary_name}</p>}
+              {p.location && <p className="projects__location">{p.location}</p>}
               <p className="projects__count">{p.template_count}+ Creatives</p>
             </div>
           </button>

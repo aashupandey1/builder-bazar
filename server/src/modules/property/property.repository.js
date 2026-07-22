@@ -2,7 +2,7 @@ const db = require('../../core/config/db');
 
 module.exports.findAll = async () => {
   const result = await db.query(
-    `SELECT p.id, p.name, p.location, p.address, COUNT(t.id)::int AS template_count,
+    `SELECT p.id, p.name, p.location, p.address, p.secondary_name, COUNT(t.id)::int AS template_count,
             (SELECT t2.file_url FROM templates t2 WHERE t2.project_id = p.id ORDER BY t2.created_at DESC LIMIT 1) AS thumbnail_url
      FROM properties p
      LEFT JOIN templates t ON t.project_id = p.id
