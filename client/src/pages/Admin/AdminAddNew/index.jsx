@@ -167,7 +167,7 @@ export default function AdminAddNew() {
             <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
           </div>
 
-          <p className="upload-card__section-label">Media (optional) — is project ke liye</p>
+          <p className="upload-card__section-label">Media (optional) — For this project</p>
           <input type="text" placeholder="Media subtitle (optional)" value={projForm.subtitle} onChange={(e) => setProjForm({ ...projForm, subtitle: e.target.value })} />
           <label className="upload-card__file">
             <UploadCloud size={18} />
