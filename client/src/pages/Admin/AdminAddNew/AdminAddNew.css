@@ -103,10 +103,62 @@
     color: #9aa4b2;
     margin: 0;
 }
+
 .upload-card__section-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9aa4b2;
-  text-transform: uppercase;
-  margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9aa4b2;
+    text-transform: uppercase;
+    margin: 4px 0 0;
+}
+
+.upload-card__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.upload-card__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1a2b;
+}
+
+.combobox__list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 10;
+    max-height: 180px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e5e9f2;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(15, 26, 43, 0.08);
+}
+
+.combobox__option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #0f1a2b;
+    cursor: pointer;
+}
+
+.combobox__option:hover {
+    background: #f1f4f9;
+}
+
+.combobox__option--add {
+    color: #2f5fe0;
+    font-weight: 600;
+    border-top: 1px solid #e5e9f2;
 }
