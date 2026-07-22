@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ShareModal.css';
 import {
@@ -47,6 +47,22 @@ export default function ShareModal(props) {
     : fileUrl;
   const shareText = props.shareText || state?.title || "Check this out!";
 
+  const [preparedFile, setPreparedFile] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(fileUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (cancelled) return;
+        const isVideo = blob.type.startsWith('video') || /\.(mp4|mov)$/i.test(fileUrl);
+        const fileName = fileUrl.split('/').pop() || (isVideo ? 'video.mp4' : 'image.jpg');
+        setPreparedFile(new File([blob], fileName, {
+          type: blob.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+        }));
+      })
+      .catch(() => { });
+    return () => { cancelled = true; };
+  }, [fileUrl]);
   const SHARE_LINKS = {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
@@ -55,22 +71,15 @@ export default function ShareModal(props) {
   // Fetches the actual video/image and hands it to the OS share-sheet
   // (WhatsApp Status, Instagram, etc. then receive the real file, not a link)
   const shareFileNatively = async () => {
+    if (!preparedFile) return false;
     setSharing(true);
     try {
-      const res = await fetch(fileUrl);
-      const blob = await res.blob();
-      const isVideo = blob.type.startsWith('video') || /\.(mp4|mov)$/i.test(fileUrl);
-      const fileName = fileUrl.split('/').pop() || (isVideo ? 'video.mp4' : 'image.jpg');
-      const file = new File([blob], fileName, {
-        type: blob.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
-      });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: shareText, text: shareText });
+      if (navigator.canShare && navigator.canShare({ files: [preparedFile] })) {
+        await navigator.share({ files: [preparedFile], title: shareText, text: shareText });
         return true;
       }
     } catch (err) {
-      if (err?.name === 'AbortError') return true; // user closed the share sheet, not a failure
+      if (err?.name === 'AbortError') return true;
     } finally {
       setSharing(false);
     }
@@ -128,7 +137,7 @@ export default function ShareModal(props) {
             </span>
 
             <span className="sharemodal__list-text">
-              {item.name === "WhatsApp" && sharing ? "Preparing video…" : item.name}
+              {item.name === "WhatsApp" && (sharing || !preparedFile) ? "Preparing video…" : item.name}
             </span>
 
             <ChevronRight size={18} />
