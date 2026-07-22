@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Volume2, VolumeX } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import SearchBar from '../../components/common/SearchBar';
 import BottomNav from '../../components/layout/BottomNav';
-import heroVideo from '../../assets/videos/hero.mp4';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import {
@@ -33,6 +33,8 @@ export default function Dashboard() {
   const [trendingOffset, setTrendingOffset] = useState(0);
   const [hasMoreTrending, setHasMoreTrending] = useState(true);
   const [hero, setHero] = useState(null);
+  const [heroMuted, setHeroMuted] = useState(true);
+  const heroVideoRef = useRef(null);
 
   const loadTrending = (currentOffset, replace = false) => {
     axiosClient.get(ENDPOINTS.TEMPLATES, { params: { sort: 'trending', limit: PREVIEW_COUNT, offset: currentOffset } })
@@ -77,41 +79,47 @@ export default function Dashboard() {
       <Header />
       <SearchBar value={search} onChange={handleSearchChange} />
 
-      <div className="dashboard__hero">
+      <div
+        className="dashboard__hero"
+        onClick={() => hero && navigate('/preview', { state: hero })}
+      >
         {hero && isVideoTag(hero.type) ? (
           <video
             className="dashboard__hero-video"
             src={hero.file_url}
             autoPlay loop playsInline
-            ref={(node) => { if (node) node.muted = true; }}
+            muted={heroMuted}
+            ref={heroVideoRef}
           />
         ) : hero ? (
           <img className="dashboard__hero-video" src={hero.file_url} alt={hero.title} />
-        ) : (
-          <video className="dashboard__hero-video" autoPlay muted loop playsInline>
-            <source src={heroVideo} type="video/mp4" />
-          </video>
-        )}
+        ) : null}
         <div className="dashboard__hero-overlay"></div>
         <div className="dashboard__hero-content">
-          {hero ? (
-            <h2 className="dashboard__hero-title">{hero.title}</h2>
-          ) : (
-            <>
-              <p className="dashboard__hero-eyebrow">LIVE THE</p>
-              <h2 className="dashboard__hero-title">LUXURY</h2>
-              <p className="dashboard__hero-eyebrow">YOU DESERVE</p>
-            </>
-          )}
+          {hero && <h2 className="dashboard__hero-title">{hero.title}</h2>}
           {hero && (
             <button
               className="dashboard__hero-btn"
-              onClick={() => navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } })}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } });
+              }}
             >
               View Project
             </button>
           )}
         </div>
+        {hero && isVideoTag(hero.type) && (
+          <button
+            className="dashboard__hero-mute"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHeroMuted((prev) => !prev);
+            }}
+          >
+            {heroMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+        )}
       </div>
 
       <div className="dashboard__actions">
