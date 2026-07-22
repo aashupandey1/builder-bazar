@@ -81,13 +81,12 @@ export default function ShareModal(props) {
     if (disabled || sharing) return;
 
     if (name === "WhatsApp") {
-      const waTab = window.open("", "_blank"); // sync open, gesture zinda rehta
+      const canNativeShare = typeof navigator.share === 'function';
+      const waTab = canNativeShare ? null : window.open("", "_blank");
       const shared = await shareFileNatively();
       if (!shared) {
         if (waTab) waTab.location.href = SHARE_LINKS.whatsapp;
         else window.open(SHARE_LINKS.whatsapp, "_blank", "noopener,noreferrer");
-      } else if (waTab) {
-        waTab.close();
       }
     } else if (name === "Facebook") {
       window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
