@@ -1,6 +1,6 @@
 const db = require('../../core/config/db');
 
-module.exports.findAll = async ({ sort, projectId, type, featured, limit = 10, offset = 0 } = {}) => {
+module.exports.findAll = async ({ sort, projectId, type, featured, search, limit = 10, offset = 0 } = {}) => {
   const orderBy = sort === 'trending' ? 'usage_count DESC' : 'created_at DESC';
   const conditions = [];
   const params = [];
@@ -12,8 +12,9 @@ module.exports.findAll = async ({ sort, projectId, type, featured, limit = 10, o
     params.push(type);
     conditions.push(`type = $${params.length}`);
   }
-  if (featured) {
-    conditions.push('is_featured = TRUE');
+  if (search) {
+    params.push(`%${search}%`);
+    conditions.push(`title ILIKE $${params.length}`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);

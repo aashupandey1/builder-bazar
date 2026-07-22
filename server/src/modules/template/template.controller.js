@@ -11,6 +11,7 @@ module.exports.list = async (req, res, next) => {
       projectId: req.query.project_id,
       type: req.query.type,
       featured: req.query.featured,
+      search: req.query.search,
       limit: req.query.limit,
       offset: req.query.offset,
     });
@@ -93,7 +94,7 @@ module.exports.remove = async (req, res, next) => {
     const removed = await service.remove(req.params.id);
     if (removed.file_url) {
       const publicId = removed.file_url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
-      cloudinary.uploader.destroy(publicId, { resource_type: 'auto' }).catch(() => {});
+      cloudinary.uploader.destroy(publicId, { resource_type: 'auto' }).catch(() => { });
     }
     res.json({ success: true, message: 'Template deleted' });
   } catch (err) {

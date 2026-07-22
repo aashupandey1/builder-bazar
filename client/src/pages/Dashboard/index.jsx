@@ -53,9 +53,22 @@ export default function Dashboard() {
       .catch(() => setHero(null));
   }, []);
 
-  const filteredTrending = trending.filter((item) =>
-    item.title.toLowerCase().includes(search.trim().toLowerCase())
-  );
+  useEffect(() => {
+    const term = search.trim();
+    if (!term) {
+      loadTrending(0, true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      axiosClient.get(ENDPOINTS.TEMPLATES, { params: { search: term, limit: 50 } })
+        .then((res) => {
+          setTrending(res.data.data);
+          setHasMoreTrending(false);
+        })
+        .catch(() => setTrending([]));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleSearchChange = (val) => setSearch(val);
 
@@ -90,8 +103,8 @@ export default function Dashboard() {
               <p className="dashboard__hero-eyebrow">YOU DESERVE</p>
             </>
           )}
-           {hero && (
-          <button
+          {hero && (
+            <button
               className="dashboard__hero-btn"
               onClick={() => navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } })}
             >
@@ -121,7 +134,7 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard__trending">
-        {filteredTrending.map((item, index) => (
+        {trending.map((item, index) => (
           <button
             key={item.id}
             className="dashboard__card"
