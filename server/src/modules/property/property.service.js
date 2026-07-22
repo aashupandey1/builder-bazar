@@ -4,7 +4,8 @@ const fs = require('fs/promises');
 const path = require('path');
 
 module.exports.list = () => repository.findAll();
-module.exports.create = (data) => repository.create(data);
+module.exports.suggestions = () => repository.findSuggestions();
+module.exports.create = (data) => repository.create(data);;
 module.exports.update = (id, fields) => repository.update(id, fields);
 
 module.exports.remove = async (id) => {
@@ -14,7 +15,7 @@ module.exports.remove = async (id) => {
 
   templates.forEach((t) => {
     if (t.file_url) {
-      fs.unlink(path.join(__dirname, '../../../storage', t.file_url.replace('/storage/', ''))).catch(() => {});
+      fs.unlink(path.join(__dirname, '../../../storage', t.file_url.replace('/storage/', ''))).catch(() => { });
     }
   });
 

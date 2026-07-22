@@ -9,6 +9,15 @@ module.exports.list = async (req, res, next) => {
   }
 };
 
+module.exports.suggestions = async (req, res, next) => {
+  try {
+    const data = await service.suggestions();
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports.create = async (req, res, next) => {
   try {
     const data = await service.create(req.body);

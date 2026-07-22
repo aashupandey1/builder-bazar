@@ -12,12 +12,25 @@ module.exports.findAll = async () => {
   return result.rows;
 };
 
-module.exports.create = async ({ name, location, address }) => {
+module.exports.create = async ({ name, location, address, secondary_name, category }) => {
   const result = await db.query(
-    `INSERT INTO properties (name, location, address) VALUES ($1, $2, $3) RETURNING *`,
-    [name, location, address]
+    `INSERT INTO properties (name, location, address, secondary_name, category) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [name, location, address, secondary_name || null, category || null]
   );
   return result.rows[0];
+};
+
+module.exports.findSuggestions = async () => {
+  const [names, locations, secondaryNames] = await Promise.all([
+    db.query(`SELECT DISTINCT name FROM properties WHERE name IS NOT NULL AND name <> '' ORDER BY name`),
+    db.query(`SELECT DISTINCT location FROM properties WHERE location IS NOT NULL AND location <> '' ORDER BY location`),
+    db.query(`SELECT DISTINCT secondary_name FROM properties WHERE secondary_name IS NOT NULL AND secondary_name <> '' ORDER BY secondary_name`),
+  ]);
+  return {
+    names: names.rows.map((r) => r.name),
+    locations: locations.rows.map((r) => r.location),
+    secondaryNames: secondaryNames.rows.map((r) => r.secondary_name),
+  };
 };
 
 module.exports.update = async (id, fields) => {

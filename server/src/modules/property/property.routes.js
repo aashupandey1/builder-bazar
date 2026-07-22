@@ -6,6 +6,7 @@ const { idParamsSchema, createPropertySchema, updatePropertySchema } = require('
 
 const router = express.Router();
 router.get('/', controller.list);
+router.get('/suggestions', controller.suggestions);
 router.post('/', requireAdmin, validate(createPropertySchema), controller.create);
 router.put('/:id', requireAdmin, validate(idParamsSchema, 'params'), validate(updatePropertySchema), controller.update);
 router.delete('/:id', requireAdmin, validate(idParamsSchema, 'params'), controller.remove);

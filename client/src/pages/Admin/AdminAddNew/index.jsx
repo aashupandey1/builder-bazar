@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, Folder, ChevronDown } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
@@ -6,6 +6,51 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import './AdminAddNew.css';
 
 const TEMPLATE_TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
+const CATEGORIES = ['Residential', 'Commercial', 'Villa', 'Plot', 'Other'];
+
+// Inline type-or-pick field — used only in this file, so no separate component.
+function ComboField({ label, value, onChange, options, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const term = value.trim().toLowerCase();
+  const filtered = options.filter((o) => o.toLowerCase().includes(term));
+  const exactMatch = options.some((o) => o.toLowerCase() === term);
+  const pick = (val) => { onChange(val); setOpen(false); };
+
+  return (
+    <label className="upload-card__field" ref={wrapRef} style={{ position: 'relative' }}>
+      <span>{label}</span>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+      />
+      {open && (filtered.length > 0 || (term && !exactMatch)) && (
+        <div className="combobox__list">
+          {filtered.map((o) => (
+            <button type="button" key={o} className="combobox__option" onMouseDown={() => pick(o)}>{o}</button>
+          ))}
+          {term && !exactMatch && (
+            <button type="button" className="combobox__option combobox__option--add" onMouseDown={() => pick(value.trim())}>
+              + Add "{value.trim()}"
+            </button>
+          )}
+        </div>
+      )}
+    </label>
+  );
+};
 
 export default function AdminAddNew() {
   const navigate = useNavigate();
@@ -14,8 +59,15 @@ export default function AdminAddNew() {
   const [tplForm, setTplForm] = useState({ title: '', subtitle: '', type: 'Video', file: null });
   const [tplStatus, setTplStatus] = useState('');
 
-  const [projForm, setProjForm] = useState({ name: '', location: '', address: '', subtitle: '', files: [] });
+  const [projForm, setProjForm] = useState({ name: '', location: '', address: '', secondaryName: '', category: '', subtitle: '', files: [] });
   const [projStatus, setProjStatus] = useState('');
+  const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [] });
+
+  useEffect(() => {
+    axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
+      .then((res) => setSuggestions(res.data.data))
+      .catch(() => { });
+  }, []);
 
   const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
 
@@ -48,6 +100,8 @@ export default function AdminAddNew() {
         name: projForm.name,
         location: projForm.location,
         address: projForm.address,
+        secondary_name: projForm.secondaryName,
+        category: projForm.category,
       });
       const property = propRes.data.data;
 
@@ -71,7 +125,7 @@ export default function AdminAddNew() {
       }
 
       setProjStatus('Project created');
-      setProjForm({ name: '', location: '', address: '', subtitle: '', files: [] });
+      setProjForm({ name: '', location: '', address: '', secondaryName: '', category: '', subtitle: '', files: [] });
       navigate('/admin/projects');
     } catch (err) {
       setProjStatus(err.response?.data?.message || 'Save failed');
@@ -107,8 +161,37 @@ export default function AdminAddNew() {
       </button>
       {open === 'project' && (
         <form className="upload-card" onSubmit={handleCreateProject}>
-          <input type="text" placeholder="Project name (e.g. Skyline Towers)" required value={projForm.name} onChange={(e) => setProjForm({ ...projForm, name: e.target.value })} />
-          <input type="text" placeholder="Location (optional)" value={projForm.location} onChange={(e) => setProjForm({ ...projForm, location: e.target.value })} />
+          <div className="upload-card__grid">
+            <ComboField
+              label="Primary Name"
+              value={projForm.name}
+              onChange={(v) => setProjForm({ ...projForm, name: v })}
+              options={suggestions.names}
+              placeholder="Select primary name"
+            />
+            <ComboField
+              label="Secondary Name"
+              value={projForm.secondaryName}
+              onChange={(v) => setProjForm({ ...projForm, secondaryName: v })}
+              options={suggestions.secondaryNames}
+              placeholder="Select secondary name"
+            />
+            <ComboField
+              label="Location"
+              value={projForm.location}
+              onChange={(v) => setProjForm({ ...projForm, location: v })}
+              options={suggestions.locations}
+              placeholder="Select location"
+            />
+            <label className="upload-card__field">
+              <span>Category</span>
+              <select value={projForm.category} onChange={(e) => setProjForm({ ...projForm, category: e.target.value })}>
+                <option value="">Select category</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+          </div>
+
           <input type="text" placeholder="Address (optional)" value={projForm.address} onChange={(e) => setProjForm({ ...projForm, address: e.target.value })} />
 
           <p className="upload-card__section-label">Media (optional) — is project ke liye</p>

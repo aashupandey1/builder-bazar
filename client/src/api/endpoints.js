@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   PROJECTS: '/projects',
   FAVORITES: '/favorites',
   PROPERTIES: '/properties',
+  PROPERTY_SUGGESTIONS: '/properties/suggestions',
   PROFILE: '/profile',
   BRANDING: '/branding',
   NOTIFICATIONS: '/notifications',
