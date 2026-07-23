@@ -66,12 +66,13 @@ export default function AdminProjects() {
         {visible.map((p) => (
           <div className="property-card" key={p.id}>
             <div className="property-card__row">
-              <div className="property-card__body">
+              <div className="property-card__body" onClick={() => toggleHeroPicker(p.id)}>
                 {editingId === p.id ? (
                   <input
                     className="template-card__edit-input"
                     value={editName}
                     autoFocus
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => setEditName(e.target.value)}
                   />
                 ) : (
