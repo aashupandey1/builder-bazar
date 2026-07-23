@@ -14,7 +14,8 @@ module.exports.findAll = async () => {
 
 module.exports.create = async ({ name, location, address, secondary_name, category }) => {
   const result = await db.query(
-    `INSERT INTO properties (name, location, address, secondary_name, category) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    `INSERT INTO properties (name, location, address, secondary_name, category) VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (name, location) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
     [name, location, address, secondary_name || null, category || null]
   );
   return result.rows[0];
