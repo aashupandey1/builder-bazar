@@ -1,15 +1,27 @@
 const db = require('../../core/config/db');
 
+const toThumbnail = (url, type) => {
+  if (!url) return null;
+  if (type !== 'Video' && type !== 'Reel') return url;
+  return url.replace('/video/upload/', '/video/upload/so_0/').replace(/\.[^/.]+$/, '.jpg');
+};
+
 module.exports.findAll = async () => {
   const result = await db.query(
     `SELECT p.id, p.name, p.location, p.address, p.secondary_name, COUNT(t.id)::int AS template_count,
-            (SELECT t2.file_url FROM templates t2 WHERE t2.project_id = p.id ORDER BY t2.created_at DESC LIMIT 1) AS thumbnail_url
+            latest.file_url AS thumbnail_url, latest.type AS thumbnail_type
      FROM properties p
      LEFT JOIN templates t ON t.project_id = p.id
-     GROUP BY p.id
+     LEFT JOIN LATERAL (
+       SELECT file_url, type FROM templates t2 WHERE t2.project_id = p.id ORDER BY t2.created_at DESC LIMIT 1
+     ) latest ON true
+     GROUP BY p.id, latest.file_url, latest.type
      ORDER BY p.created_at DESC`
   );
-  return result.rows;
+  return result.rows.map(({ thumbnail_type, ...row }) => ({
+    ...row,
+    thumbnail_url: toThumbnail(row.thumbnail_url, thumbnail_type),
+  }));
 };
 
 module.exports.create = async ({ name, location, address, secondary_name, category }) => {
