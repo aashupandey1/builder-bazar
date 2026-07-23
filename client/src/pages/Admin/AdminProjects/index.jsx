@@ -126,7 +126,7 @@ export default function AdminProjects() {
                 <div className="property-card__hero-inner">
                   <div className="creative-list">
                     {isOpen && projectTemplates.length === 0 && (
-                      <p className="property-card__meta">Is project me koi media nahi hai.</p>
+                      <p className="property-card__meta">There is no media in this project</p>
                     )}
                     {isOpen && projectTemplates.map((t) => (
                       <div className="creative-item" key={t.id}>
