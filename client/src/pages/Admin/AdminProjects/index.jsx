@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pencil, Trash2, Search, Star, ChevronDown, Play } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
+import Skeleton from '../../../components/common/Skeleton/Skeleton';
 import '../AdminTemplates/AdminTemplates.css';
 import './AdminProjects.css';
 
@@ -9,6 +10,7 @@ const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
 
 export default function AdminProjects() {
   const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [search, setSearch] = useState('');
@@ -20,6 +22,12 @@ export default function AdminProjects() {
   const refresh = () => {
     axiosClient.get(ENDPOINTS.PROPERTIES).then((res) => setProperties(res.data.data));
   };
+
+  useEffect(() => {
+    axiosClient.get(ENDPOINTS.PROPERTIES)
+      .then((res) => setProperties(res.data.data))
+      .finally(() => setLoading(false));
+  }, []);
 
   const loadProjectTemplates = async (id) => {
     const res = await axiosClient.get(ENDPOINTS.TEMPLATES, { params: { project_id: id, limit: 50 } });
@@ -50,7 +58,7 @@ export default function AdminProjects() {
     refresh();
   };
 
-  useEffect(() => { refresh(); }, []);
+
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete karna hai?')) return;
@@ -83,7 +91,16 @@ export default function AdminProjects() {
       </div>
 
       <div className="property-list">
-        {visible.map((p) => {
+        {loading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="property-card" style={{ pointerEvents: 'none' }}>
+                <div className="property-card__row">
+                  <Skeleton width="60%" height="15px" radius="6px" />
+                  <Skeleton width="40%" height="12px" radius="6px" style={{ marginTop: 6 }} />
+                </div>
+              </div>
+            ))
+          : visible.map((p) => {
           const isOpen = expandedId === p.id;
           return (
             <div className={`property-card ${isOpen ? 'property-card--active' : ''}`} key={p.id}>

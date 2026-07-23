@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Play, Pencil, Trash2, Search, MoreVertical } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
+import Skeleton from '../../../components/common/Skeleton/Skeleton';
 import './AdminTemplates.css';
 
 const TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
@@ -26,6 +27,7 @@ export default function AdminTemplates() {
   const [search, setSearch] = useState('');
   const [tabCounts, setTabCounts] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // debounce the search box so we don't hit the API on every keystroke
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function AdminTemplates() {
     setHasMore(rows.length === PAGE_SIZE);
     setTotal((prev) => (replace ? rows.length : prev + rows.length));
     setOffset(currentOffset + rows.length);
+    if (replace) setLoading(false);
   };
 
   useEffect(() => { loadStats(); }, []);
@@ -92,7 +95,17 @@ export default function AdminTemplates() {
       </div>
 
       <div className="template-list">
-        {templates.map((t) => (
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div className="template-card" key={i} style={{ pointerEvents: 'none' }}>
+                <Skeleton width="100%" height="120px" radius="8px" />
+                <div className="template-card__body">
+                  <Skeleton width="60%" height="13px" radius="6px" />
+                  <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 5 }} />
+                </div>
+              </div>
+            ))
+          : templates.map((t) => (
           <div className="template-card" key={t.id}>
             <div className="template-card__thumb">
               {isVideoTag(t.type) ? (

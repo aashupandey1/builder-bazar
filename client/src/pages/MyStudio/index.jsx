@@ -4,6 +4,7 @@ import Header from '../../components/layout/Header';
 import BottomNav from '../../components/layout/BottomNav';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
+import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './MyStudio.css';
 
 const TABS = ['Recent', 'Favorites', 'Drafts',];
@@ -34,17 +35,16 @@ export default function MyStudio() {
   const [projects, setProjects] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.PROJECTS)
-      .then((res) => setProjects(res.data.data))
-      .catch(() => setProjects([]));
-    axiosClient.get(ENDPOINTS.FAVORITES)
-      .then((res) => {
+    Promise.all([
+      axiosClient.get(ENDPOINTS.PROJECTS).then((res) => setProjects(res.data.data)).catch(() => setProjects([])),
+      axiosClient.get(ENDPOINTS.FAVORITES).then((res) => {
         setFavorites(res.data.data);
         setFavoriteIds(new Set(res.data.data.map((p) => p.id)));
-      })
-      .catch(() => { });
+      }).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const handleToggleFavorite = (e, id) => {
@@ -107,39 +107,50 @@ export default function MyStudio() {
       </div>
 
       <div className="mystudio__list">
-        {visibleItems.map((item) => (
-          <div
-            key={item.id}
-            className="mystudio__item"
-            onClick={() => navigate('/live-preview', { state: { projectId: item.id } })}
-          >
-            <div className="mystudio__thumb" />
-            <div className="mystudio__info">
-              <p className="mystudio__title">{item.title}</p>
-              <p className="mystudio__meta">{item.meta}</p>
-              <p className="mystudio__date">{item.date}</p>
-            </div>
-            <button
-              className="mystudio__menu"
-              aria-label="Favorite"
-              onClick={(e) => handleToggleFavorite(e, item.id)}
-            >
-              {favoriteIds.has(item.id) ? '♥' : '♡'}
-            </button>
-            <button
-              className="mystudio__menu"
-              aria-label="Delete"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(item.id);
-              }}
-            >
-              ⋮
-            </button>
-          </div>
-        ))}
+        {loading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="mystudio__item" style={{ pointerEvents: 'none' }}>
+                <Skeleton width="56px" height="56px" radius="8px" />
+                <div style={{ flex: 1, marginLeft: 12 }}>
+                  <Skeleton width="55%" height="14px" radius="6px" />
+                  <Skeleton width="35%" height="11px" radius="6px" style={{ marginTop: 6 }} />
+                </div>
+              </div>
+            ))
+          : visibleItems.map((item) => (
+              <div
+                key={item.id}
+                className="mystudio__item"
+                onClick={() => navigate('/live-preview', { state: { projectId: item.id } })}
+              >
+                <div className="mystudio__thumb" />
+                <div className="mystudio__info">
+                  <p className="mystudio__title">{item.title}</p>
+                  <p className="mystudio__meta">{item.meta}</p>
+                  <p className="mystudio__date">{item.date}</p>
+                </div>
+                <button
+                  className="mystudio__menu"
+                  aria-label="Favorite"
+                  onClick={(e) => handleToggleFavorite(e, item.id)}
+                >
+                  {favoriteIds.has(item.id) ? '♥' : '♡'}
+                </button>
+                <button
+                  className="mystudio__menu"
+                  aria-label="Delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item.id);
+                  }}
+                >
+                  ⋮
+                </button>
+              </div>
+            ))
+        }
 
-        {itemsForTab.length === 0 && (
+        {!loading && itemsForTab.length === 0 && (
           <p className="mystudio__empty">No items found in this tab.</p>
         )}
       </div>

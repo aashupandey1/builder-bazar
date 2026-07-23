@@ -5,12 +5,14 @@ import SearchBar from '../../components/common/SearchBar';
 import BottomNav from '../../components/layout/BottomNav';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
+import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './Projects.css';
 
 const PREVIEW_COUNT = 10;
 
 export default function Projects() {
   const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PREVIEW_COUNT);
@@ -19,7 +21,8 @@ export default function Projects() {
   useEffect(() => {
     axiosClient.get(ENDPOINTS.PROPERTIES)
       .then((res) => setProperties(res.data.data))
-      .catch(() => setProperties([]));
+      .catch(() => setProperties([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const locations = ['All', ...new Set(properties.map((p) => p.location).filter(Boolean))];
@@ -60,31 +63,42 @@ export default function Projects() {
       </div>
 
       <div className="projects__list">
-        {visibleProjects.map((p) => (
-          <button
-            key={p.id}
-            className="projects__card"
-            onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
-          >
-            <div
-              className="projects__thumb"
-              style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-            >
-              {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="projects__info">
-              <p className="projects__name">{p.name}</p>
-              {(p.secondary_name || p.location) && (
-                <p className="projects__location">
-                  {[p.secondary_name, p.location].filter(Boolean).join(' — ')}
-                </p>
-              )}
-              <p className="projects__count">{p.template_count}+ Creatives</p>
-            </div>
-          </button>
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="projects__card" style={{ pointerEvents: 'none' }}>
+                <Skeleton width="56px" height="56px" radius="10px" />
+                <div style={{ flex: 1, marginLeft: 12 }}>
+                  <Skeleton width="60%" height="14px" radius="6px" />
+                  <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 6 }} />
+                </div>
+              </div>
+            ))
+          : visibleProjects.map((p) => (
+              <button
+                key={p.id}
+                className="projects__card"
+                onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
+              >
+                <div
+                  className="projects__thumb"
+                  style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                >
+                  {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="projects__info">
+                  <p className="projects__name">{p.name}</p>
+                  {(p.secondary_name || p.location) && (
+                    <p className="projects__location">
+                      {[p.secondary_name, p.location].filter(Boolean).join(' — ')}
+                    </p>
+                  )}
+                  <p className="projects__count">{p.template_count}+ Creatives</p>
+                </div>
+              </button>
+            ))
+        }
 
-        {filteredProjects.length === 0 && (
+        {!loading && filteredProjects.length === 0 && (
           <p className="projects__empty">Didn't get any project.</p>
         )}
       </div>

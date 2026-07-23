@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
+import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './Notifications.css';
 
 // ponytail: simple relative time, no date lib for one field
@@ -16,9 +17,12 @@ function timeAgo(dateStr) {
 export default function Notifications() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.NOTIFICATIONS).then((res) => setItems(res.data.data));
+    axiosClient.get(ENDPOINTS.NOTIFICATIONS)
+      .then((res) => setItems(res.data.data))
+      .finally(() => setLoading(false));
   }, []);
 
   const markRead = async (id) => {
@@ -40,19 +44,30 @@ export default function Notifications() {
       </div>
 
       <div className="notifications__list">
-        {items.map((n) => (
-          <div key={n.id} className="notifications__item" onClick={() => !n.is_read && markRead(n.id)}>
-            <span className="notifications__icon" />
-            <div className="notifications__info">
-              <p className="notifications__item-title">{n.title}</p>
-              <p className="notifications__item-sub">{n.message}</p>
-            </div>
-            <div className="notifications__meta">
-              <span className="notifications__time">{timeAgo(n.created_at)}</span>
-              {!n.is_read && <span className="notifications__dot" />}
-            </div>
-          </div>
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="notifications__item" style={{ pointerEvents: 'none' }}>
+                <Skeleton width="36px" height="36px" radius="50%" />
+                <div style={{ flex: 1, marginLeft: 12 }}>
+                  <Skeleton width="55%" height="13px" radius="6px" />
+                  <Skeleton width="75%" height="11px" radius="6px" style={{ marginTop: 5 }} />
+                </div>
+              </div>
+            ))
+          : items.map((n) => (
+              <div key={n.id} className="notifications__item" onClick={() => !n.is_read && markRead(n.id)}>
+                <span className="notifications__icon" />
+                <div className="notifications__info">
+                  <p className="notifications__item-title">{n.title}</p>
+                  <p className="notifications__item-sub">{n.message}</p>
+                </div>
+                <div className="notifications__meta">
+                  <span className="notifications__time">{timeAgo(n.created_at)}</span>
+                  {!n.is_read && <span className="notifications__dot" />}
+                </div>
+              </div>
+            ))
+        }
       </div>
     </div>
   );

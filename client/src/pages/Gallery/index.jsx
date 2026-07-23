@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
+import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './Gallery.css';
 
 const TABS = ['All', 'Videos', 'Reels', 'Posters', 'Stories', 'Banners'];
@@ -11,13 +12,16 @@ export default function Gallery() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.tab || 'All');
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     const params = location.state?.projectId ? { project_id: location.state.projectId } : {};
     axiosClient.get(ENDPOINTS.TEMPLATES, { params })
       .then((res) => setItems(res.data.data))
-      .catch(() => setItems([]));
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
   }, [location.state?.projectId]);
 
   const visible =
@@ -55,23 +59,32 @@ export default function Gallery() {
       </div>
 
       <div className="gallery__grid">
-        {visible.map((item) => (
-          <button
-            key={item.id}
-            className="gallery__grid-item"
-            onClick={() => {
-              axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => {});
-              navigate('/preview', { state: item });
-            }}
-          >
-            <span className="gallery__grid-tag">{item.type}</span>
-            {isVideoTag(item.type) ? (
-              <video className="gallery__grid-media" src={item.file_url} muted loop playsInline />
-            ) : (
-              <img className="gallery__grid-media" src={item.file_url} alt={item.title} />
-            )}
-          </button>
-        ))}
+        {loading
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="gallery__grid-item" style={{ pointerEvents: 'none' }}>
+                <Skeleton width="100%" height="160px" radius="10px" />
+                <Skeleton width="70%" height="12px" radius="6px" style={{ marginTop: 8 }} />
+                <Skeleton width="45%" height="10px" radius="6px" style={{ marginTop: 4 }} />
+              </div>
+            ))
+          : visible.map((item) => (
+              <button
+                key={item.id}
+                className="gallery__grid-item"
+                onClick={() => {
+                  axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => {});
+                  navigate('/preview', { state: item });
+                }}
+              >
+                <span className="gallery__grid-tag">{item.type}</span>
+                {isVideoTag(item.type) ? (
+                  <video className="gallery__grid-media" src={item.file_url} muted loop playsInline />
+                ) : (
+                  <img className="gallery__grid-media" src={item.file_url} alt={item.title} />
+                )}
+              </button>
+            ))
+        }
       </div>
     </div>
   );

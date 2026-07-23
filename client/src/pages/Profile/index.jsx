@@ -5,6 +5,7 @@ import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import BottomNav from '../../components/layout/BottomNav';
 import { BuildingIcon, UserIcon, BellIcon } from '../../components/common/Icon';
+import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './Profile.css';
 
 const MENU = [
@@ -21,20 +22,23 @@ export default function Profile() {
   const [profile, setProfile] = useState({ name: '', email: '', phone: '' });
   const [branding, setBranding] = useState({ company_name: '', tagline: '' });
   const [notif, setNotif] = useState({ push_enabled: true, email_enabled: true, sms_enabled: false });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.PROFILE).then((res) => {
-      const d = res.data.data;
-      setProfile({ name: d.name || '', email: d.email || '', phone: d.phone || '' });
-    });
-    axiosClient.get(ENDPOINTS.BRANDING).then((res) => {
-      const d = res.data.data;
-      if (d) setBranding({ company_name: d.company_name || '', tagline: d.tagline || '' });
-    });
-    axiosClient.get(ENDPOINTS.NOTIFICATION_SETTINGS).then((res) => {
-      const d = res.data.data;
-      setNotif({ push_enabled: d.push_enabled, email_enabled: d.email_enabled, sms_enabled: d.sms_enabled });
-    });
+    Promise.all([
+      axiosClient.get(ENDPOINTS.PROFILE).then((res) => {
+        const d = res.data.data;
+        setProfile({ name: d.name || '', email: d.email || '', phone: d.phone || '' });
+      }),
+      axiosClient.get(ENDPOINTS.BRANDING).then((res) => {
+        const d = res.data.data;
+        if (d) setBranding({ company_name: d.company_name || '', tagline: d.tagline || '' });
+      }),
+      axiosClient.get(ENDPOINTS.NOTIFICATION_SETTINGS).then((res) => {
+        const d = res.data.data;
+        setNotif({ push_enabled: d.push_enabled, email_enabled: d.email_enabled, sms_enabled: d.sms_enabled });
+      }),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const toggleMenu = (id) => setOpenMenu((prev) => (prev === id ? null : id));
@@ -62,14 +66,26 @@ export default function Profile() {
       </div>
 
       <div className="profile__card">
-        <div className="profile__avatar">
-          {(profile.name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-        </div>
-        <div className="profile__info">
-          <p className="profile__name">{profile.name}</p>
-          <p className="profile__email">{profile.email}</p>
-          <p className="profile__phone">{profile.phone}</p>
-        </div>
+        {loading ? (
+          <>
+            <Skeleton width="56px" height="56px" radius="50%" />
+            <div style={{ flex: 1, marginLeft: 14 }}>
+              <Skeleton width="50%" height="15px" radius="6px" />
+              <Skeleton width="65%" height="12px" radius="6px" style={{ marginTop: 6 }} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="profile__avatar">
+              {(profile.name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+            </div>
+            <div className="profile__info">
+              <p className="profile__name">{profile.name}</p>
+              <p className="profile__email">{profile.email}</p>
+              <p className="profile__phone">{profile.phone}</p>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="profile__menu">
