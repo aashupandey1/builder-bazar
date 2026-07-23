@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pencil, Trash2, Search, Star } from 'lucide-react';
+import { Pencil, Trash2, Search, Star, ChevronDown } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
 import '../AdminTemplates/AdminTemplates.css';
@@ -63,58 +63,64 @@ export default function AdminProjects() {
       </div>
 
       <div className="property-list">
-        {visible.map((p) => (
-          <div className="property-card" key={p.id}>
-            <div className="property-card__row">
-              <div className="property-card__body" onClick={() => toggleHeroPicker(p.id)}>
-                {editingId === p.id ? (
-                  <input
-                    className="template-card__edit-input"
-                    value={editName}
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => setEditName(e.target.value)}
-                  />
-                ) : (
-                  <p className="property-card__title">{p.name}</p>
-                )}
-                <p className="property-card__meta">
-                  {[p.location, p.address].filter(Boolean).join(' — ') || 'No location set'}
-                </p>
-                <span className="property-card__count">{p.template_count}+ Creatives</span>
+        {visible.map((p) => {
+          const isOpen = expandedId === p.id;
+          return (
+            <div className={`property-card ${isOpen ? 'property-card--active' : ''}`} key={p.id}>
+              <div className="property-card__row">
+                <div className="property-card__body" onClick={() => toggleHeroPicker(p.id)}>
+                  {editingId === p.id ? (
+                    <input
+                      className="template-card__edit-input"
+                      value={editName}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => setEditName(e.target.value)}
+                    />
+                  ) : (
+                    <p className="property-card__title">{p.name}</p>
+                  )}
+                  <p className="property-card__meta">
+                    {[p.location, p.address].filter(Boolean).join(' — ') || 'No location set'}
+                  </p>
+                  <span className="property-card__count">{p.template_count}+ Creatives</span>
+                </div>
+
+                <ChevronDown size={18} className={`property-card__chevron ${isOpen ? 'is-open' : ''}`} onClick={() => toggleHeroPicker(p.id)} />
+
+                <div className="template-card__actions">
+                  <button className="icon-btn" onClick={() => toggleHeroPicker(p.id)} aria-label="Hero select">
+                    <Star size={16} />
+                  </button>
+                  {editingId === p.id ? (
+                    <button className="icon-btn icon-btn--save" onClick={() => saveEdit(p.id)}>Save</button>
+                  ) : (
+                    <button className="icon-btn" onClick={() => { setEditingId(p.id); setEditName(p.name); }} aria-label="Edit">
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                  <button className="icon-btn icon-btn--danger" onClick={() => handleDelete(p.id)} aria-label="Delete">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
 
-              <div className="template-card__actions">
-                <button className="icon-btn" onClick={() => toggleHeroPicker(p.id)} aria-label="Hero select">
-                  <Star size={16} />
-                </button>
-                {editingId === p.id ? (
-                  <button className="icon-btn icon-btn--save" onClick={() => saveEdit(p.id)}>Save</button>
-                ) : (
-                  <button className="icon-btn" onClick={() => { setEditingId(p.id); setEditName(p.name); }} aria-label="Edit">
-                    <Pencil size={16} />
-                  </button>
-                )}
-                <button className="icon-btn icon-btn--danger" onClick={() => handleDelete(p.id)} aria-label="Delete">
-                  <Trash2 size={16} />
-                </button>
+              <div className={`property-card__hero-wrap ${isOpen ? 'is-open' : ''}`}>
+                <div className="property-card__hero-inner">
+                  <div className="property-card__hero-picker">
+                    {isOpen && projectTemplates.length === 0 && <p className="property-card__meta">Is project me koi media nahi hai.</p>}
+                    {isOpen && projectTemplates.map((t) => (
+                      <button key={t.id} className="property-card__hero-item" onClick={() => setProjectHero(t.id)}>
+                        <Star size={14} fill={t.is_featured ? '#f5a623' : 'none'} />
+                        <span>{t.title} ({t.type})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-
-            {expandedId === p.id && (
-              <div className="property-card__hero-picker">
-                {projectTemplates.length === 0 && <p className="property-card__meta">Is project me koi media nahi hai.</p>}
-                {projectTemplates.map((t) => (
-                  <button key={t.id} className="property-card__hero-item" onClick={() => setProjectHero(t.id)}>
-                    <Star size={14} fill={t.is_featured ? '#f5a623' : 'none'} />
-                    <span>{t.title} ({t.type})</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-        ))}
+          );
+        })}
         {q && !visible.length && <p className="property-card__meta">Koi project nahi mila.</p>}
       </div>
     </div>

@@ -107,3 +107,46 @@
   font-weight: 700;
   color: #2f5fe0;
 }
+
+.property-card {
+  transition: background 150ms ease;
+}
+
+.property-card--active {
+  background: #eef2fb;
+}
+
+.property-card__body {
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 150ms ease;
+}
+
+.property-card__body:hover {
+  background: #eef2fb;
+}
+
+.property-card__chevron {
+  color: #9aa4b2;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 200ms ease;
+}
+
+.property-card__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.property-card__hero-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease;
+}
+
+.property-card__hero-wrap.is-open {
+  grid-template-rows: 1fr;
+}
+
+.property-card__hero-inner {
+  overflow: hidden;
+}
