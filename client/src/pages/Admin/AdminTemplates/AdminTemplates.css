@@ -205,29 +205,3 @@
   font-weight: 700;
   cursor: pointer;
 }
-
-/* Project filter banner */
-.admin-templates__project-filter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #eef2ff;
-  border: 1px solid #d6dcfb;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: #33415c;
-}
-
-.admin-templates__project-filter button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: none;
-  background: transparent;
-  color: #2f5fe0;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Play, Pencil, Trash2, Search, MoreVertical, X } from 'lucide-react';
+import { Play, Pencil, Trash2, Search, MoreVertical } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
 import './AdminTemplates.css';
@@ -16,9 +15,6 @@ const formatDate = (iso) =>
   new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
 export default function AdminTemplates() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const projectId = searchParams.get('project_id');
-  const projectName = searchParams.get('project_name');
   const [templates, setTemplates] = useState([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -44,7 +40,6 @@ export default function AdminTemplates() {
     const params = { limit: PAGE_SIZE, offset: currentOffset };
     if (activeTab !== 'All') params.type = activeTab;
     if (search) params.search = search;
-    if (projectId) params.project_id = projectId;
     const res = await axiosClient.get(ENDPOINTS.TEMPLATES, { params });
     const rows = res.data.data;
     setTemplates((prev) => (replace ? rows : [...prev, ...rows]));
@@ -53,14 +48,8 @@ export default function AdminTemplates() {
     setOffset(currentOffset + rows.length);
   };
 
-  useEffect(() => { loadStats(); }, [projectId]);
-  useEffect(() => { loadPage(0, true); }, [activeTab, search, projectId]);
-
-  const clearProjectFilter = () => {
-    searchParams.delete('project_id');
-    searchParams.delete('project_name');
-    setSearchParams(searchParams);
-  };
+  useEffect(() => { loadStats(); }, []);
+  useEffect(() => { loadPage(0, true); }, [activeTab, search]);
 
   const refresh = () => { loadPage(0, true); loadStats(); };
 
@@ -81,15 +70,6 @@ export default function AdminTemplates() {
 
   return (
     <div className="admin-templates">
-      {projectId && (
-        <div className="admin-templates__project-filter">
-          <span>Project: <strong>{projectName || projectId}</strong></span>
-          <button onClick={clearProjectFilter} aria-label="Clear project filter">
-            <X size={14} /> Clear
-          </button>
-        </div>
-      )}
-
       <div className="admin-templates__searchbar">
         <Search size={16} color="#9aa4b2" />
         <input

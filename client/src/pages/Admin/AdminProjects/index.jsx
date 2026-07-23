@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Pencil, Trash2, Search, Star } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
 import { ENDPOINTS } from '../../../api/endpoints';
@@ -7,7 +6,6 @@ import '../AdminTemplates/AdminTemplates.css';
 import './AdminProjects.css';
 
 export default function AdminProjects() {
-  const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
@@ -68,14 +66,7 @@ export default function AdminProjects() {
         {visible.map((p) => (
           <div className="property-card" key={p.id}>
             <div className="property-card__row">
-              <div
-                className="property-card__body"
-                onClick={() => {
-                  if (editingId === p.id) return;
-                  navigate(`/admin/templates?project_id=${p.id}&project_name=${encodeURIComponent(p.name)}`);
-                }}
-                style={{ cursor: editingId === p.id ? 'default' : 'pointer' }}
-              >
+              <div className="property-card__body">
                 {editingId === p.id ? (
                   <input
                     className="template-card__edit-input"
