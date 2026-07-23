@@ -94,6 +94,7 @@ export default function AdminAddNew() {
   const handleCreateProject = async (e) => {
     e.preventDefault();
     if (!projForm.name.trim()) return setProjStatus('Property name zaroori hai');
+    if (!projForm.files.length) return setProjStatus('Kam se kam 1 media file zaroori hai');
     setProjStatus('Saving...');
     try {
       const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
@@ -167,11 +168,11 @@ export default function AdminAddNew() {
             <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
           </div>
 
-          <p className="upload-card__section-label">Media (optional) — For this project</p>
+          <p className="upload-card__section-label">Media — For this project</p>
           <input type="text" placeholder="Media subtitle (optional)" value={projForm.subtitle} onChange={(e) => setProjForm({ ...projForm, subtitle: e.target.value })} />
           <label className="upload-card__file">
             <UploadCloud size={18} />
-            <span>{projForm.files.length ? `${projForm.files.length} file(s) selected` : 'Choose media files (video/img/etc)'}</span>
+            <span>{projForm.files.length ? `${projForm.files.length} file(s) selected` : 'Choose media files (required)'}</span>
             <input type="file" multiple accept="image/*,video/*" hidden onChange={(e) => {
               const chosen = Array.from(e.target.files).map((file) => ({
                 file,
