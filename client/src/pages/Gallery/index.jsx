@@ -8,7 +8,7 @@ import './Gallery.css';
 const TABS = ['All', 'Videos', 'Reels', 'Posters', 'Stories', 'Banners'];
 const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
 
-let galleryCache = null;
+let galleryCache = null; // { key, items, scrollY } // { key, items, scrollY }
 
 export default function Gallery() {
   const location = useLocation();
@@ -22,18 +22,27 @@ export default function Gallery() {
     if (galleryCache?.key === key) {
       setItems(galleryCache.items);
       setLoading(false);
-      return;
+    } else {
+      setLoading(true);
+      const params = location.state?.projectId ? { project_id: location.state.projectId } : {};
+      axiosClient.get(ENDPOINTS.TEMPLATES, { params })
+        .then((res) => {
+          setItems(res.data.data);
+          galleryCache = { key, items: res.data.data };
+        })
+        .catch(() => setItems([]))
+        .finally(() => setLoading(false));
     }
-    setLoading(true);
-    const params = location.state?.projectId ? { project_id: location.state.projectId } : {};
-    axiosClient.get(ENDPOINTS.TEMPLATES, { params })
-      .then((res) => {
-        setItems(res.data.data);
-        galleryCache = { key, items: res.data.data };
-      })
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+    return () => {
+      if (galleryCache?.key === key) galleryCache.scrollY = window.scrollY;
+    };
   }, [location.state?.projectId]);
+
+  useLayoutEffect(() => {
+    if (!loading && galleryCache?.scrollY) {
+      window.scrollTo(0, galleryCache.scrollY);
+    }
+  }, [loading]);
 
   const visible =
     activeTab === 'All' ? items : items.filter((i) => `${i.type}s` === activeTab || i.type === activeTab);
