@@ -15,7 +15,7 @@ export default function Header({ title = 'Marketing Studio' }) {
     const fetchUnread = () => {
       axiosClient.get(ENDPOINTS.NOTIFICATIONS).then((res) => {
         setUnreadCount(res.data.data.filter((n) => !n.is_read).length);
-      });
+      }).catch(() => {});
     };
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000); // ponytail: polling, socket.io not wired yet
