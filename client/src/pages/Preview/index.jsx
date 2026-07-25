@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Download, Heart } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Download, Heart, ArrowLeft } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import './Preview.css';
@@ -148,8 +148,9 @@ export default function Preview() {
           <button
             className="preview__icon-btn"
             onClick={() => navigate(-1)}
+            aria-label="Back"
           >
-            ←
+            <ArrowLeft size={22} strokeWidth={2.5} />
           </button>
 
           <h1 className="preview__title">Content Preview</h1>
@@ -175,7 +176,7 @@ export default function Preview() {
           onClick={() => navigate(-1)}
           aria-label="Back"
         >
-          ←
+          <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
 
         <h1 className="preview__title">
