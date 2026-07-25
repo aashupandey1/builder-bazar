@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import './Preview.css';
@@ -98,6 +98,7 @@ export default function Preview() {
   const { state } = useLocation();
   const [isFavorite, setIsFavorite] = useState(false);
   const [favBounce, setFavBounce] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!state?.id) return;
@@ -118,6 +119,28 @@ export default function Preview() {
     req.catch(() => setIsFavorite(!next));
   };
 
+  const getExtension = (url) => {
+    const clean = url.split('?')[0].split('#')[0];
+    const ext = clean.split('.').pop();
+    return ext && ext.length <= 5 ? ext : 'jpg';
+  };
+
+  const handleDownload = () => {
+    if (!state?.file_url || downloading) return;
+    setDownloading(true);
+    fetch(state.file_url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `${state.title || 'download'}.${getExtension(state.file_url)}`;
+        a.click();
+        URL.revokeObjectURL(blobUrl);
+      })
+      .catch(() => alert('Download failed, try again.'))
+      .finally(() => setDownloading(false));
+  };
   if (!state) {
     return (
       <div className="preview">
@@ -158,6 +181,15 @@ export default function Preview() {
         <h1 className="preview__title">
           {state.title}
         </h1>
+
+        <button
+          className="preview__icon-btn"
+          aria-label="Download"
+          onClick={handleDownload}
+          disabled={downloading}
+        >
+          <Download size={20} />
+        </button>
 
         <button
           className={`preview__icon-btn ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
