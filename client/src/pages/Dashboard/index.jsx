@@ -36,13 +36,14 @@ export default function Dashboard() {
   const [trendingOffset, setTrendingOffset] = useState(0);
   const [hasMoreTrending, setHasMoreTrending] = useState(true);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  const [moreLoading, setMoreLoading] = useState(false);
   const [hero, setHero] = useState(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [heroMuted, setHeroMuted] = useState(true);
   const heroVideoRef = useRef(null);
 
   const loadTrending = (currentOffset, replace = false) => {
-    if (replace) setTrendingLoading(true);
+    if (replace) setTrendingLoading(true); else setMoreLoading(true);
     axiosClient.get(ENDPOINTS.TEMPLATES, { params: { sort: 'trending', limit: PREVIEW_COUNT, offset: currentOffset } })
       .then((res) => {
         const rows = res.data.data;
@@ -51,7 +52,10 @@ export default function Dashboard() {
         setTrendingOffset(currentOffset + rows.length);
       })
       .catch(() => setHasMoreTrending(false))
-      .finally(() => { if (replace) setTrendingLoading(false); });
+      .finally(() => {
+        if (replace) setTrendingLoading(false);
+        setMoreLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -221,8 +225,8 @@ export default function Dashboard() {
       </div>
 
       {hasMoreTrending && (
-        <button className="dashboard__view-more" onClick={() => loadTrending(trendingOffset)}>
-          View More
+        <button className="dashboard__view-more" onClick={() => loadTrending(trendingOffset)} disabled={moreLoading}>
+          {moreLoading ? 'Loading...' : 'View More'}
         </button>
       )}
 

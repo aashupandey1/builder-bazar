@@ -28,6 +28,7 @@ export default function AdminTemplates() {
   const [tabCounts, setTabCounts] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [moreLoading, setMoreLoading] = useState(false);
 
   // debounce the search box so we don't hit the API on every keystroke
   useEffect(() => {
@@ -36,9 +37,10 @@ export default function AdminTemplates() {
   }, [searchInput]);
 
   const loadStats = () =>
-    axiosClient.get(`${ENDPOINTS.TEMPLATES}/stats`).then((res) => setTabCounts(res.data.data)).catch(() => {});
+    axiosClient.get(`${ENDPOINTS.TEMPLATES}/stats`).then((res) => setTabCounts(res.data.data)).catch(() => { });
 
   const loadPage = async (currentOffset, replace = false) => {
+    if (!replace) setMoreLoading(true);
     const params = { limit: PAGE_SIZE, offset: currentOffset };
     if (activeTab !== 'All') params.type = activeTab;
     if (search) params.search = search;
@@ -49,6 +51,7 @@ export default function AdminTemplates() {
     setTotal((prev) => (replace ? rows.length : prev + rows.length));
     setOffset(currentOffset + rows.length);
     if (replace) setLoading(false);
+    if (!replace) setMoreLoading(false);
   };
 
   useEffect(() => { loadStats(); }, []);
@@ -97,73 +100,73 @@ export default function AdminTemplates() {
       <div className="template-list">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div className="template-card" key={i} style={{ pointerEvents: 'none' }}>
-                <Skeleton width="100%" height="120px" radius="8px" />
-                <div className="template-card__body">
-                  <Skeleton width="60%" height="13px" radius="6px" />
-                  <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 5 }} />
-                </div>
+            <div className="template-card" key={i} style={{ pointerEvents: 'none' }}>
+              <Skeleton width="100%" height="120px" radius="8px" />
+              <div className="template-card__body">
+                <Skeleton width="60%" height="13px" radius="6px" />
+                <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 5 }} />
               </div>
-            ))
+            </div>
+          ))
           : templates.map((t) => (
-          <div className="template-card" key={t.id}>
-            <div className="template-card__thumb">
-              {isVideoTag(t.type) ? (
-                <>
-                  <video src={t.file_url} muted playsInline />
-                  <span className="template-card__play"><Play size={16} fill="#fff" /></span>
-                </>
-              ) : (
-                <img src={t.file_url} alt={t.title} />
-              )}
-            </div>
-
-            <div className="template-card__body">
-              {editingId === t.id ? (
-                <input
-                  className="template-card__edit-input"
-                  value={editTitle}
-                  autoFocus
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-              ) : (
-                <p className="template-card__title">{t.title}</p>
-              )}
-              <p className="template-card__meta">
-                {t.type} · {formatDate(t.created_at)}{t.is_featured ? ' · Featured' : ''}
-              </p>
-            </div>
-
-            {editingId === t.id ? (
-              <button className="template-card__save-btn" onClick={() => saveEdit(t.id)}>Save</button>
-            ) : (
-              <div className="template-card__menu-wrap">
-                <button
-                  className="template-card__menu-btn"
-                  onClick={() => setOpenMenuId(openMenuId === t.id ? null : t.id)}
-                  aria-label="More options"
-                >
-                  <MoreVertical size={18} />
-                </button>
-                {openMenuId === t.id && (
-                  <div className="template-card__dropdown" onMouseLeave={() => setOpenMenuId(null)}>
-                    <button onClick={() => { setEditingId(t.id); setEditTitle(t.title); setOpenMenuId(null); }}>
-                      <Pencil size={14} /> Edit
-                    </button>
-                    <button className="template-card__dropdown-danger" onClick={() => { handleDelete(t.id); setOpenMenuId(null); }}>
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
+            <div className="template-card" key={t.id}>
+              <div className="template-card__thumb">
+                {isVideoTag(t.type) ? (
+                  <>
+                    <video src={t.file_url} muted playsInline />
+                    <span className="template-card__play"><Play size={16} fill="#fff" /></span>
+                  </>
+                ) : (
+                  <img src={t.file_url} alt={t.title} />
                 )}
               </div>
-            )}
-          </div>
-        ))}
+
+              <div className="template-card__body">
+                {editingId === t.id ? (
+                  <input
+                    className="template-card__edit-input"
+                    value={editTitle}
+                    autoFocus
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                ) : (
+                  <p className="template-card__title">{t.title}</p>
+                )}
+                <p className="template-card__meta">
+                  {t.type} · {formatDate(t.created_at)}{t.is_featured ? ' · Featured' : ''}
+                </p>
+              </div>
+
+              {editingId === t.id ? (
+                <button className="template-card__save-btn" onClick={() => saveEdit(t.id)}>Save</button>
+              ) : (
+                <div className="template-card__menu-wrap">
+                  <button
+                    className="template-card__menu-btn"
+                    onClick={() => setOpenMenuId(openMenuId === t.id ? null : t.id)}
+                    aria-label="More options"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+                  {openMenuId === t.id && (
+                    <div className="template-card__dropdown" onMouseLeave={() => setOpenMenuId(null)}>
+                      <button onClick={() => { setEditingId(t.id); setEditTitle(t.title); setOpenMenuId(null); }}>
+                        <Pencil size={14} /> Edit
+                      </button>
+                      <button className="template-card__dropdown-danger" onClick={() => { handleDelete(t.id); setOpenMenuId(null); }}>
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
       </div>
 
       <p className="template-list__count">Showing {total} template{total !== 1 ? 's' : ''}</p>
       {hasMore && (
-        <button className="view-more-btn" onClick={() => loadPage(offset)}>View More</button>
+        <button className="view-more-btn" onClick={() => loadPage(offset)} disabled={moreLoading}>{moreLoading ? 'Loading...' : 'View More'}</button>
       )}
     </div>
   );
