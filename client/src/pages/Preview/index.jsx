@@ -176,7 +176,7 @@ export default function Preview() {
           onClick={() => navigate(-1)}
           aria-label="Back"
         >
-          <ArrowLeft size={22} strokeWidth={2.5} />
+          <ArrowLeft size={20} strokeWidth={2.5} />
         </button>
 
         <h1 className="preview__title">
