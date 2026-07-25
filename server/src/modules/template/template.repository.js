@@ -12,6 +12,9 @@ module.exports.findAll = async ({ sort, projectId, type, featured, search, limit
     params.push(type);
     conditions.push(`type = $${params.length}`);
   }
+  if (featured === true || featured === 'true') {
+    conditions.push(`is_featured = TRUE`);
+  }
   if (search) {
     params.push(`%${search}%`);
     conditions.push(`title ILIKE $${params.length}`);
@@ -46,8 +49,8 @@ module.exports.incrementUsage = async (id) => {
 // within the same project, instead of touching every row in the table.
 module.exports.setFeatured = async (id, projectId) => {
   await db.query(
-    'UPDATE templates SET is_featured = (id = $1) WHERE project_id = $2 AND (is_featured = TRUE OR id = $1)',
-    [id, projectId]
+    'UPDATE templates SET is_featured = (id = $1) WHERE is_featured = TRUE OR id = $1',
+    [id]
   );
   const result = await db.query('SELECT * FROM templates WHERE id = $1', [id]);
   return result.rows[0] || null;
