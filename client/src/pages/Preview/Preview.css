@@ -33,10 +33,24 @@
   color: #e0245e;
 }
 
+.preview__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 @keyframes preview-fav-pop {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.35); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.35);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .preview__title {

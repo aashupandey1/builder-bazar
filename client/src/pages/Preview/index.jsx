@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Download, Heart } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import './Preview.css';
@@ -182,22 +182,24 @@ export default function Preview() {
           {state.title}
         </h1>
 
-        <button
-          className="preview__icon-btn"
-          aria-label="Download"
-          onClick={handleDownload}
-          disabled={downloading}
-        >
-          <Download size={20} />
-        </button>
+        <div className="preview__header-actions">
+          <button
+            className="preview__icon-btn"
+            aria-label="Download"
+            onClick={handleDownload}
+            disabled={downloading}
+          >
+            <Download size={20} />
+          </button>
 
-        <button
-          className={`preview__icon-btn ${isFavorite ? 'preview__icon-btn--active' : ''} ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
-          aria-label="Favorite"
-          onClick={toggleFavorite}
-        >
-          {isFavorite ? '♥' : '♡'}
-        </button>
+          <button
+            className={`preview__icon-btn ${isFavorite ? 'preview__icon-btn--active' : ''} ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
+            aria-label="Favorite"
+            onClick={toggleFavorite}
+          >
+            <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
+          </button>
+        </div>
       </div>
 
       <div className="preview__media">
