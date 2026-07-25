@@ -25,6 +25,8 @@ function projectToItem(p) {
   };
 }
 
+const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
+
 function templateToItem(t) {
   return {
     id: t.id,
@@ -32,6 +34,7 @@ function templateToItem(t) {
     meta: t.type,
     date: null,
     thumb: t.thumbnail_url || t.file_url,
+    isVideo: isVideoTag(t.type),
   };
 }
 
@@ -108,7 +111,11 @@ export default function MyStudio() {
               }
             >
               <div className="mystudio__thumb">
-                {item.thumb && <img src={item.thumb} alt="" className="mystudio__thumb-img" />}
+                {item.thumb && (
+                  item.isVideo
+                    ? <video src={item.thumb} className="mystudio__thumb-img" muted playsInline preload="metadata" />
+                    : <img src={item.thumb} alt="" className="mystudio__thumb-img" />
+                )}
               </div>
               <div className="mystudio__info">
                 <p className="mystudio__title">{item.title}</p>
