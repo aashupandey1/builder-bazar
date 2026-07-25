@@ -148,3 +148,8 @@ ADD COLUMN IF NOT EXISTS project_id INTEGER REFERENCES properties (id);
 
 ALTER TABLE templates
 ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE favorites DROP CONSTRAINT unique_favorite;
+ALTER TABLE favorites DROP COLUMN project_id;
+ALTER TABLE favorites ADD COLUMN template_id INTEGER NOT NULL REFERENCES templates(id) ON DELETE CASCADE;
+ALTER TABLE favorites ADD CONSTRAINT unique_favorite UNIQUE (user_id, template_id);
