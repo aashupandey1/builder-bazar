@@ -149,19 +149,6 @@
   justify-content: center;
 }
 
-.creative-item__star {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .creative-item__body {
   flex: 1;
   min-width: 0;
