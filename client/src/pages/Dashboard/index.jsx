@@ -37,6 +37,7 @@ export default function Dashboard() {
   const [hasMoreTrending, setHasMoreTrending] = useState(true);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [hero, setHero] = useState(null);
+  const [heroLoading, setHeroLoading] = useState(true);
   const [heroMuted, setHeroMuted] = useState(true);
   const heroVideoRef = useRef(null);
 
@@ -60,11 +61,13 @@ export default function Dashboard() {
       setHasMoreTrending(dashboardCache.hasMoreTrending);
       setHero(dashboardCache.hero);
       setTrendingLoading(false);
+      setHeroLoading(false);
     } else {
       loadTrending(0, true);
       axiosClient.get(ENDPOINTS.TEMPLATES, { params: { featured: true } })
         .then((res) => setHero(res.data.data[0] || null))
-        .catch(() => setHero(null));
+        .catch(() => setHero(null))
+        .finally(() => setHeroLoading(false));
     }
   }, []);
 
@@ -114,7 +117,9 @@ export default function Dashboard() {
         className="dashboard__hero"
         onClick={() => hero && navigate('/preview', { state: hero })}
       >
-        {hero && isVideoTag(hero.type) ? (
+        {heroLoading ? (
+          <Skeleton width="100%" height="100%" radius="0px" />
+        ) : hero && isVideoTag(hero.type) ? (
           <video
             className="dashboard__hero-video"
             src={hero.file_url}
