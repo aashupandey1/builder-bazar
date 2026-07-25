@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, VolumeX } from 'lucide-react';
 import Header from '../../components/layout/Header';
@@ -27,6 +27,8 @@ const QUICK_ACTIONS = [
 const PREVIEW_COUNT = 10;
 const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
 
+let dashboardCache = null; // { trending, trendingOffset, hasMoreTrending, hero, scrollY }
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -52,14 +54,39 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    loadTrending(0, true);
-
-    axiosClient.get(ENDPOINTS.TEMPLATES, { params: { featured: true } })
-      .then((res) => setHero(res.data.data[0] || null))
-      .catch(() => setHero(null));
+    if (dashboardCache) {
+      setTrending(dashboardCache.trending);
+      setTrendingOffset(dashboardCache.trendingOffset);
+      setHasMoreTrending(dashboardCache.hasMoreTrending);
+      setHero(dashboardCache.hero);
+      setTrendingLoading(false);
+    } else {
+      loadTrending(0, true);
+      axiosClient.get(ENDPOINTS.TEMPLATES, { params: { featured: true } })
+        .then((res) => setHero(res.data.data[0] || null))
+        .catch(() => setHero(null));
+    }
   }, []);
 
   useEffect(() => {
+    dashboardCache = { trending, trendingOffset, hasMoreTrending, hero, scrollY: dashboardCache?.scrollY };
+  }, [trending, trendingOffset, hasMoreTrending, hero]);
+
+  useEffect(() => {
+    return () => {
+      if (dashboardCache) dashboardCache.scrollY = window.scrollY;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!trendingLoading && dashboardCache?.scrollY) {
+      window.scrollTo(0, dashboardCache.scrollY);
+    }
+  }, [trendingLoading]);
+
+  const skipFirstSearch = useRef(true);
+  useEffect(() => {
+    if (skipFirstSearch.current) { skipFirstSearch.current = false; return; }
     const term = search.trim();
     if (!term) {
       loadTrending(0, true);
@@ -148,43 +175,43 @@ export default function Dashboard() {
       <div className="dashboard__trending">
         {trendingLoading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="dashboard__card" style={{ pointerEvents: 'none' }}>
-                <Skeleton width="100%" height="160px" radius="10px" />
-                <Skeleton width="65%" height="13px" radius="6px" style={{ marginTop: 8 }} />
-                <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 4 }} />
-              </div>
-            ))
+            <div key={i} className="dashboard__card" style={{ pointerEvents: 'none' }}>
+              <Skeleton width="100%" height="160px" radius="10px" />
+              <Skeleton width="65%" height="13px" radius="6px" style={{ marginTop: 8 }} />
+              <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 4 }} />
+            </div>
+          ))
           : trending.map((item, index) => (
-              <button
-                key={item.id}
-                className="dashboard__card"
-                onClick={() => {
-                  axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => { });
-                  navigate('/preview', { state: item });
-                }}
-              >
-                <span className="dashboard__card-tag">{item.type}</span>
-                <div className="dashboard__card-image">
-                  {isVideoTag(item.type) ? (
-                    <>
-                      <video
-                        src={item.file_url}
-                        loop playsInline
-                        preload="metadata"
-                        ref={(node) => { if (node) node.muted = true; }}
-                      />
-                      <span className="dashboard__card-play">
-                        <PlayIcon size={22} />
-                      </span>
-                    </>
-                  ) : (
-                    <img src={item.file_url} alt={item.title} />
-                  )}
-                </div>
-                <p className="dashboard__card-title">{item.title}</p>
-                <p className="dashboard__card-subtitle">{item.subtitle}</p>
-              </button>
-            ))
+            <button
+              key={item.id}
+              className="dashboard__card"
+              onClick={() => {
+                axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => { });
+                navigate('/preview', { state: item });
+              }}
+            >
+              <span className="dashboard__card-tag">{item.type}</span>
+              <div className="dashboard__card-image">
+                {isVideoTag(item.type) ? (
+                  <>
+                    <video
+                      src={item.file_url}
+                      loop playsInline
+                      preload="metadata"
+                      ref={(node) => { if (node) node.muted = true; }}
+                    />
+                    <span className="dashboard__card-play">
+                      <PlayIcon size={22} />
+                    </span>
+                  </>
+                ) : (
+                  <img src={item.file_url} alt={item.title} />
+                )}
+              </div>
+              <p className="dashboard__card-title">{item.title}</p>
+              <p className="dashboard__card-subtitle">{item.subtitle}</p>
+            </button>
+          ))
         }
       </div>
 
