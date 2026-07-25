@@ -1,16 +1,15 @@
-// Business logic for favorite module
 const repository = require('./favorite.repository');
-const projectRepository = require('../project/project.repository');
+const templateRepository = require('../template/template.repository');
 const AppError = require('../../core/errors/AppError');
 
 module.exports.list = (userId) => repository.findAllByUser(userId);
 
-module.exports.add = async (userId, projectId) => {
-  const project = await projectRepository.findById(projectId);
-  if (!project || project.user_id !== userId) {
-    throw new AppError('Project not found', 404);
+module.exports.add = async (userId, templateId) => {
+  const template = await templateRepository.findById(templateId);
+  if (!template) {
+    throw new AppError('Template not found', 404);
   }
-  return repository.add(userId, projectId);
+  return repository.add(userId, templateId);
 };
 
-module.exports.remove = (userId, projectId) => repository.remove(userId, projectId);
+module.exports.remove = (userId, templateId) => repository.remove(userId, templateId);
