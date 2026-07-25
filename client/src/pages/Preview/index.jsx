@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import axiosClient from '../../api/axiosClient';
+import { ENDPOINTS } from '../../api/endpoints';
 import './Preview.css';
 
 
@@ -94,6 +96,27 @@ function VideoPlayer({ src }) {
 export default function Preview() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favBounce, setFavBounce] = useState(false);
+
+  useEffect(() => {
+    if (!state?.id) return;
+    axiosClient.get(ENDPOINTS.FAVORITES)
+      .then((res) => setIsFavorite(res.data.data.some((t) => t.id === state.id)))
+      .catch(() => { });
+  }, [state?.id]);
+
+  const toggleFavorite = () => {
+    if (!state?.id) return;
+    const next = !isFavorite;
+    setIsFavorite(next);
+    setFavBounce(true);
+    setTimeout(() => setFavBounce(false), 300);
+    const req = next
+      ? axiosClient.post(`${ENDPOINTS.FAVORITES}/${state.id}`)
+      : axiosClient.delete(`${ENDPOINTS.FAVORITES}/${state.id}`);
+    req.catch(() => setIsFavorite(!next));
+  };
 
   if (!state) {
     return (
@@ -137,10 +160,11 @@ export default function Preview() {
         </h1>
 
         <button
-          className="preview__icon-btn"
+          className={`preview__icon-btn ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
           aria-label="Favorite"
+          onClick={toggleFavorite}
         >
-          ♡
+          {isFavorite ? '♥' : '♡'}
         </button>
       </div>
 

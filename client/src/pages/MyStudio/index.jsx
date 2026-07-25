@@ -7,7 +7,7 @@ import { ENDPOINTS } from '../../api/endpoints';
 import Skeleton from '../../components/common/Skeleton/Skeleton';
 import './MyStudio.css';
 
-const TABS = ['Recent', 'Favorites', 'Drafts',];
+const TABS = ['Recent', 'Favorites', 'Drafts'];
 const PREVIEW_COUNT = 10;
 
 function formatDate(iso) {
@@ -15,11 +15,7 @@ function formatDate(iso) {
   return `Edited on ${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 }
 
-// Favorites/Drafts/Downloads need their own tables+endpoints (not built yet) — empty for now.
-// ponytail: real for Recent only, rest wired when those endpoints exist.
-// Drafts/Downloads need their own tables+endpoints (not built yet) — empty for now.
-// ponytail: real for Recent + Favorites, rest wired when those endpoints exist.
-function toItem(p) {
+function projectToItem(p) {
   return {
     id: p.id,
     title: p.title || 'Untitled',
@@ -28,66 +24,48 @@ function toItem(p) {
   };
 }
 
+function templateToItem(t) {
+  return {
+    id: t.id,
+    title: t.title || 'Untitled',
+    meta: t.type,
+    date: null,
+  };
+}
+
+// ponytail: Drafts needs its own table+endpoint (not built yet) — empty for now.
 export default function MyStudio() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Recent');
   const [visibleCount, setVisibleCount] = useState(PREVIEW_COUNT);
   const [projects, setProjects] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [favoriteIds, setFavoriteIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       axiosClient.get(ENDPOINTS.PROJECTS).then((res) => setProjects(res.data.data)).catch(() => setProjects([])),
-      axiosClient.get(ENDPOINTS.FAVORITES).then((res) => {
-        setFavorites(res.data.data);
-        setFavoriteIds(new Set(res.data.data.map((p) => p.id)));
-      }).catch(() => {}),
+      axiosClient.get(ENDPOINTS.FAVORITES).then((res) => setFavorites(res.data.data)).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
 
-  const handleToggleFavorite = (e, id) => {
-    e.stopPropagation();
-    const isFav = favoriteIds.has(id);
-    const req = isFav
-      ? axiosClient.delete(`${ENDPOINTS.FAVORITES}/${id}`)
-      : axiosClient.post(`${ENDPOINTS.FAVORITES}/${id}`);
-    req.then(() => {
-      setFavoriteIds((prev) => {
-        const next = new Set(prev);
-        isFav ? next.delete(id) : next.add(id);
-        return next;
-      });
-      if (isFav) setFavorites((prev) => prev.filter((p) => p.id !== id));
-    }).catch(() => { });
-  };
-
   const itemsForTab =
-    activeTab === 'Recent' ? projects.map(toItem)
-      : activeTab === 'Favorites' ? favorites.map(toItem)
+    activeTab === 'Recent' ? projects.map(projectToItem)
+      : activeTab === 'Favorites' ? favorites.map(templateToItem)
         : [];
   const visibleItems = itemsForTab.slice(0, visibleCount);
   const hasMore = visibleCount < itemsForTab.length;
 
   const handleTabClick = (t) => {
     setActiveTab(t);
-    setVisibleCount(PREVIEW_COUNT); // naya tab khulte hi wapas preview mode me
+    setVisibleCount(PREVIEW_COUNT);
   };
 
   const handleDelete = (id) => {
     if (!window.confirm('Delete this project?')) return;
     axiosClient.delete(`${ENDPOINTS.PROJECTS}/${id}`)
-      .then(() => {
-        setProjects((prev) => prev.filter((p) => p.id !== id));
-        setFavorites((prev) => prev.filter((p) => p.id !== id));
-        setFavoriteIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      })
-      .catch(() => { });
+      .then(() => setProjects((prev) => prev.filter((p) => p.id !== id)))
+      .catch(() => {});
   };
 
   return (
@@ -121,31 +99,30 @@ export default function MyStudio() {
               <div
                 key={item.id}
                 className="mystudio__item"
-                onClick={() => navigate('/live-preview', { state: { projectId: item.id } })}
+                onClick={() =>
+                  activeTab === 'Favorites'
+                    ? navigate('/preview', { state: favorites.find((f) => f.id === item.id) })
+                    : navigate('/live-preview', { state: { projectId: item.id } })
+                }
               >
                 <div className="mystudio__thumb" />
                 <div className="mystudio__info">
                   <p className="mystudio__title">{item.title}</p>
                   <p className="mystudio__meta">{item.meta}</p>
-                  <p className="mystudio__date">{item.date}</p>
+                  {item.date && <p className="mystudio__date">{item.date}</p>}
                 </div>
-                <button
-                  className="mystudio__menu"
-                  aria-label="Favorite"
-                  onClick={(e) => handleToggleFavorite(e, item.id)}
-                >
-                  {favoriteIds.has(item.id) ? '♥' : '♡'}
-                </button>
-                <button
-                  className="mystudio__menu"
-                  aria-label="Delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(item.id);
-                  }}
-                >
-                  ⋮
-                </button>
+                {activeTab === 'Recent' && (
+                  <button
+                    className="mystudio__menu"
+                    aria-label="Delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
+                  >
+                    ⋮
+                  </button>
+                )}
               </div>
             ))
         }

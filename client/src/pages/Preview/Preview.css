@@ -24,6 +24,17 @@
   font-size: 15px;
 }
 
+.preview__icon-btn--bounce {
+  animation: preview-fav-pop 0.3s ease;
+  color: #e0245e;
+}
+
+@keyframes preview-fav-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
 .preview__title {
   font-size: 16px;
   font-weight: 700;
