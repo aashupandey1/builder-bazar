@@ -29,6 +29,10 @@
   color: #e0245e;
 }
 
+.preview__icon-btn--active {
+  color: #e0245e;
+}
+
 @keyframes preview-fav-pop {
   0% { transform: scale(1); }
   40% { transform: scale(1.35); }

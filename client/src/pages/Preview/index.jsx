@@ -192,7 +192,7 @@ export default function Preview() {
         </button>
 
         <button
-          className={`preview__icon-btn ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
+          className={`preview__icon-btn ${isFavorite ? 'preview__icon-btn--active' : ''} ${favBounce ? 'preview__icon-btn--bounce' : ''}`}
           aria-label="Favorite"
           onClick={toggleFavorite}
         >
