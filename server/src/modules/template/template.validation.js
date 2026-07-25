@@ -13,6 +13,10 @@ module.exports.viewParamsSchema = Joi.object({
   id: Joi.number().integer().positive().required(),
 });
 
+module.exports.setFeaturedBodySchema = Joi.object({
+  project_id: Joi.number().integer().positive().required(),
+});
+
 module.exports.createTemplateSchema = Joi.object({
   title: Joi.string().required(),
   subtitle: Joi.string().allow(''),

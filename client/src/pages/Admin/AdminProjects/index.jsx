@@ -41,7 +41,7 @@ export default function AdminProjects() {
   };
 
   const setProjectHero = async (templateId) => {
-    await axiosClient.patch(`${ENDPOINTS.TEMPLATES}/${templateId}/feature`);
+    await axiosClient.patch(`${ENDPOINTS.TEMPLATES}/${templateId}/feature`, { project_id: expandedId });
     loadProjectTemplates(expandedId);
   };
 

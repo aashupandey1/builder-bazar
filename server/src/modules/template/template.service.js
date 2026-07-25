@@ -5,8 +5,8 @@ module.exports.list = (filters) => repository.findAll(filters);
 module.exports.stats = () => repository.stats();
 module.exports.trackUsage = (id) => repository.incrementUsage(id);
 
-module.exports.setFeatured = async (id) => {
-  const updated = await repository.setFeatured(id);
+module.exports.setFeatured = async (id, projectId) => {
+  const updated = await repository.setFeatured(id, projectId);
   if (!updated) throw new AppError('Template not found', 404);
   return updated;
 };

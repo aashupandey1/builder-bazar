@@ -41,13 +41,13 @@ module.exports.incrementUsage = async (id) => {
   await db.query('UPDATE templates SET usage_count = usage_count + 1 WHERE id = $1', [id]);
 };
 
-// Only one template can be featured at a time - single statement keeps it atomic.
-// WHERE clause limits the update to the previously-featured row(s) + the new target,
-// instead of touching every row in the table.
-module.exports.setFeatured = async (id) => {
+// Only one template can be featured at a time PER PROJECT - single statement keeps it atomic.
+// WHERE clause limits the update to the previously-featured row(s) + the new target
+// within the same project, instead of touching every row in the table.
+module.exports.setFeatured = async (id, projectId) => {
   await db.query(
-    'UPDATE templates SET is_featured = (id = $1) WHERE is_featured = TRUE OR id = $1',
-    [id]
+    'UPDATE templates SET is_featured = (id = $1) WHERE project_id = $2 AND (is_featured = TRUE OR id = $1)',
+    [id, projectId]
   );
   const result = await db.query('SELECT * FROM templates WHERE id = $1', [id]);
   return result.rows[0] || null;

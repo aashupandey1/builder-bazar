@@ -43,7 +43,7 @@ module.exports.trackUsage = async (req, res, next) => {
 module.exports.setFeatured = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') throw new AppError('Admin access required', 403);
-    const data = await service.setFeatured(req.params.id);
+    const data = await service.setFeatured(req.params.id, req.body.project_id);
     res.json({ success: true, message: 'Hero template updated', data });
   } catch (err) {
     next(err);
