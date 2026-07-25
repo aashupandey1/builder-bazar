@@ -21,6 +21,7 @@ function projectToItem(p) {
     title: p.title || 'Untitled',
     meta: p.template_id ? 'From template' : 'Scratch',
     date: formatDate(p.updated_at),
+    thumb: p.thumbnail_url,
   };
 }
 
@@ -30,6 +31,7 @@ function templateToItem(t) {
     title: t.title || 'Untitled',
     meta: t.type,
     date: null,
+    thumb: t.thumbnail_url || t.file_url,
   };
 }
 
@@ -45,7 +47,7 @@ export default function MyStudio() {
   useEffect(() => {
     Promise.all([
       axiosClient.get(ENDPOINTS.PROJECTS).then((res) => setProjects(res.data.data)).catch(() => setProjects([])),
-      axiosClient.get(ENDPOINTS.FAVORITES).then((res) => setFavorites(res.data.data)).catch(() => {}),
+      axiosClient.get(ENDPOINTS.FAVORITES).then((res) => setFavorites(res.data.data)).catch(() => { }),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -65,7 +67,7 @@ export default function MyStudio() {
     if (!window.confirm('Delete this project?')) return;
     axiosClient.delete(`${ENDPOINTS.PROJECTS}/${id}`)
       .then(() => setProjects((prev) => prev.filter((p) => p.id !== id)))
-      .catch(() => {});
+      .catch(() => { });
   };
 
   return (
@@ -87,44 +89,46 @@ export default function MyStudio() {
       <div className="mystudio__list">
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="mystudio__item" style={{ pointerEvents: 'none' }}>
-                <Skeleton width="56px" height="56px" radius="8px" />
-                <div style={{ flex: 1, marginLeft: 12 }}>
-                  <Skeleton width="55%" height="14px" radius="6px" />
-                  <Skeleton width="35%" height="11px" radius="6px" style={{ marginTop: 6 }} />
-                </div>
+            <div key={i} className="mystudio__item" style={{ pointerEvents: 'none' }}>
+              <Skeleton width="56px" height="56px" radius="8px" />
+              <div style={{ flex: 1, marginLeft: 12 }}>
+                <Skeleton width="55%" height="14px" radius="6px" />
+                <Skeleton width="35%" height="11px" radius="6px" style={{ marginTop: 6 }} />
               </div>
-            ))
+            </div>
+          ))
           : visibleItems.map((item) => (
-              <div
-                key={item.id}
-                className="mystudio__item"
-                onClick={() =>
-                  activeTab === 'Favorites'
-                    ? navigate('/preview', { state: favorites.find((f) => f.id === item.id) })
-                    : navigate('/live-preview', { state: { projectId: item.id } })
-                }
-              >
-                <div className="mystudio__thumb" />
-                <div className="mystudio__info">
-                  <p className="mystudio__title">{item.title}</p>
-                  <p className="mystudio__meta">{item.meta}</p>
-                  {item.date && <p className="mystudio__date">{item.date}</p>}
-                </div>
-                {activeTab === 'Recent' && (
-                  <button
-                    className="mystudio__menu"
-                    aria-label="Delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(item.id);
-                    }}
-                  >
-                    ⋮
-                  </button>
-                )}
+            <div
+              key={item.id}
+              className="mystudio__item"
+              onClick={() =>
+                activeTab === 'Favorites'
+                  ? navigate('/preview', { state: favorites.find((f) => f.id === item.id) })
+                  : navigate('/live-preview', { state: { projectId: item.id } })
+              }
+            >
+              <div className="mystudio__thumb">
+                {item.thumb && <img src={item.thumb} alt="" className="mystudio__thumb-img" />}
               </div>
-            ))
+              <div className="mystudio__info">
+                <p className="mystudio__title">{item.title}</p>
+                <p className="mystudio__meta">{item.meta}</p>
+                {item.date && <p className="mystudio__date">{item.date}</p>}
+              </div>
+              {activeTab === 'Recent' && (
+                <button
+                  className="mystudio__menu"
+                  aria-label="Delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item.id);
+                  }}
+                >
+                  ⋮
+                </button>
+              )}
+            </div>
+          ))
         }
 
         {!loading && itemsForTab.length === 0 && (

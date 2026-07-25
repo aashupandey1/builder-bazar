@@ -54,6 +54,14 @@
   border-radius: 10px;
   background: linear-gradient(135deg, #16305c, #2f5fe0);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.mystudio__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .mystudio__info {
