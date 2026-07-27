@@ -63,12 +63,23 @@ export default function ShareModal(props) {
     try {
       // retry fetch here too — file may not have been ready when the modal first mounted
       const file = preparedFile || (await prepareFile(fileUrl));
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: shareText, text: shareText });
-        return true;
+      if (!file) {
+        console.warn('[ShareModal] prepareFile resolved null — fetch likely failed or fileUrl is empty');
+        return false;
       }
+      if (!navigator.canShare) {
+        console.warn('[ShareModal] navigator.canShare not available (non-HTTPS or unsupported browser)');
+        return false;
+      }
+      if (!navigator.canShare({ files: [file] })) {
+        console.warn('[ShareModal] canShare({ files }) returned false — file MIME:', file.type, 'name:', file.name);
+        return false;
+      }
+      await navigator.share({ files: [file], title: shareText, text: shareText });
+      return true;
     } catch (err) {
-      if (err?.name === 'AbortError') return true;
+      if (err?.name === 'AbortError') return true; // user cancelled the share sheet — that's fine
+      console.warn('[ShareModal] navigator.share threw:', err?.name, err?.message);
     } finally {
       setSharing(null);
     }
