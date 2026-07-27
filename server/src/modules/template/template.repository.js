@@ -1,28 +1,31 @@
 const db = require('../../core/config/db');
 
 module.exports.findAll = async ({ sort, projectId, type, featured, search, limit = 10, offset = 0 } = {}) => {
-  const orderBy = sort === 'trending' ? 'usage_count DESC' : 'created_at DESC';
+  const orderBy = sort === 'trending' ? 't.usage_count DESC' : 't.created_at DESC';
   const conditions = [];
   const params = [];
   if (projectId) {
     params.push(projectId);
-    conditions.push(`project_id = $${params.length}`);
+    conditions.push(`t.project_id = $${params.length}`);
   }
   if (type) {
     params.push(type);
-    conditions.push(`type = $${params.length}`);
+    conditions.push(`t.type = $${params.length}`);
   }
   if (featured === true || featured === 'true') {
-    conditions.push(`is_featured = TRUE`);
+    conditions.push(`t.is_featured = TRUE`);
   }
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`title ILIKE $${params.length}`);
+    conditions.push(`(t.title ILIKE $${params.length} OR p.name ILIKE $${params.length})`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);
   const result = await db.query(
-    `SELECT * FROM templates ${where} ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location
+     FROM templates t
+     LEFT JOIN properties p ON p.id = t.project_id
+     ${where} ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
   return result.rows;
