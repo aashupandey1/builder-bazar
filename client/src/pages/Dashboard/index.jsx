@@ -137,10 +137,10 @@ export default function Dashboard() {
 
   const handleSearchChange = (val) => setSearch(val);
 
-  // Client-side filter: case-insensitive substring match across the pooled names/locations
+  // Client-side filter: case-insensitive prefix match across the pooled names/locations
   const blurTimerRef = useRef(null);
   const filteredSuggestions = showSuggestions && search.trim().length > 0
-    ? suggestionPool.filter((s) => s.toLowerCase().includes(search.trim().toLowerCase())).slice(0, 8)
+    ? suggestionPool.filter((s) => s.toLowerCase().startsWith(search.trim().toLowerCase())).slice(0, 8)
     : [];
 
   const handleSuggestionClick = (val) => {
