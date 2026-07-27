@@ -17,7 +17,7 @@ module.exports.findAll = async ({ sort, projectId, type, featured, search, limit
   }
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(t.title ILIKE $${params.length} OR p.name ILIKE $${params.length})`);
+    conditions.push(`(t.title ILIKE $${params.length} OR p.name ILIKE $${params.length} OR p.secondary_name ILIKE $${params.length} OR p.location ILIKE $${params.length})`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);

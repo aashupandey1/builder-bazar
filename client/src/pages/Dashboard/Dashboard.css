@@ -275,3 +275,44 @@
   font-size: 14px;
   padding: 40px 20px;
 }
+
+/* Autocomplete suggestion dropdown */
+
+.dashboard__search-wrap {
+  position: relative;
+}
+
+.dashboard__suggestions {
+  position: absolute;
+  top: calc(100% - 12px); /* tucks just below the search bar's bottom margin */
+  left: 20px;
+  right: 20px;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.dashboard__suggestion-item {
+  display: block;
+  width: 100%;
+  padding: 11px 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: #0f1a2b;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.dashboard__suggestion-item:hover,
+.dashboard__suggestion-item:active {
+  background: #f1f4f9;
+}

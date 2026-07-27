@@ -4,9 +4,11 @@ export default function SearchBar({
   placeholder = 'Search projects, content, etc...',
   value = '',
   onChange,
+  onFocus,
+  onBlur,
 }) {
   return (
-    <div className="searchbar">
+    <div className="searchbar" onBlur={onBlur}>
       <svg viewBox="0 0 24 24" className="searchbar__icon" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="11" cy="11" r="7" />
         <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
@@ -17,6 +19,7 @@ export default function SearchBar({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
+        onFocus={onFocus}
       />
       {/* <button className="searchbar__filter" aria-label="Filter">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

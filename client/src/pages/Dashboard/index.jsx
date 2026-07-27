@@ -32,6 +32,8 @@ let dashboardCache = null; // { trending, trendingOffset, hasMoreTrending, hero,
 export default function Dashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [suggestionPool, setSuggestionPool] = useState([]); // flat deduped array from /properties/suggestions
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [trending, setTrending] = useState([]);
   const [trendingOffset, setTrendingOffset] = useState(0);
   const [hasMoreTrending, setHasMoreTrending] = useState(true);
@@ -73,6 +75,14 @@ export default function Dashboard() {
         .catch(() => setHero(null))
         .finally(() => setHeroLoading(false));
     }
+    // Fetch suggestion pool once — names + secondaryNames + locations combined into one flat deduped list
+    axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
+      .then((res) => {
+        const { names = [], secondaryNames = [], locations = [] } = res.data.data;
+        const all = [...new Set([...names, ...secondaryNames, ...locations].filter(Boolean))];
+        setSuggestionPool(all);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -127,10 +137,53 @@ export default function Dashboard() {
 
   const handleSearchChange = (val) => setSearch(val);
 
+  // Client-side filter: case-insensitive substring match across the pooled names/locations
+  const blurTimerRef = useRef(null);
+  const filteredSuggestions = showSuggestions && search.trim().length > 0
+    ? suggestionPool.filter((s) => s.toLowerCase().includes(search.trim().toLowerCase())).slice(0, 8)
+    : [];
+
+  const handleSuggestionClick = (val) => {
+    setSearch(val);
+    setShowSuggestions(false);
+  };
+
+  const handleSearchFocus = () => {
+    clearTimeout(blurTimerRef.current);
+    setShowSuggestions(true);
+  };
+
+  const handleSearchBlur = () => {
+    // Small delay so a suggestion click fires before the dropdown disappears
+    blurTimerRef.current = setTimeout(() => setShowSuggestions(false), 150);
+  };
+
   return (
     <div className="dashboard">
       <Header />
-      <SearchBar value={search} onChange={handleSearchChange} />
+      <div className="dashboard__search-wrap">
+        <SearchBar
+          value={search}
+          onChange={handleSearchChange}
+          onFocus={handleSearchFocus}
+          onBlur={handleSearchBlur}
+        />
+        {filteredSuggestions.length > 0 && (
+          <ul className="dashboard__suggestions">
+            {filteredSuggestions.map((s) => (
+              <li key={s}>
+                <button
+                  className="dashboard__suggestion-item"
+                  onMouseDown={(e) => e.preventDefault()} // keep input focused so blur delay doesn't race
+                  onClick={() => handleSuggestionClick(s)}
+                >
+                  {s}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div
         className="dashboard__hero"
