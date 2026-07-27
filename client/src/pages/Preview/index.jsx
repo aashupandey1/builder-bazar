@@ -55,10 +55,28 @@ function VideoPlayer({ src }) {
 
   const seek = (e) => {
     const video = videoRef.current;
-    if (!video || !duration) return;
+    if (!video) return;
+    const v = Number(e.target.value);
+    video.currentTime = v;
+    setCurrent(v);
+  };
+
+  const tapTimerRef = useRef(null);
+  const lastTapRef = useRef(0);
+  const handleVideoTap = (e) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const now = Date.now();
     const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    video.currentTime = ratio * duration;
+    const isRight = (e.clientX - rect.left) > rect.width / 2;
+    if (now - lastTapRef.current < 300) {
+      clearTimeout(tapTimerRef.current);
+      video.currentTime = Math.min(duration || video.currentTime, Math.max(0, video.currentTime + (isRight ? 5 : -5)));
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+      tapTimerRef.current = setTimeout(togglePlay, 300);
+    }
   };
 
   const progress = duration ? (current / duration) * 100 : 0;
@@ -73,7 +91,7 @@ function VideoPlayer({ src }) {
         loop
         muted={muted}
         playsInline
-        onClick={togglePlay}
+        onClick={handleVideoTap}
       />
 
       <button className="preview__play-btn" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
@@ -82,9 +100,15 @@ function VideoPlayer({ src }) {
 
       <div className="preview__scrub">
         <span>{formatTime(current)}</span>
-        <div className="preview__scrub-bar" onClick={seek}>
-          <div className="preview__scrub-fill" style={{ width: `${progress}%` }} />
-        </div>
+        <input
+          type="range"
+          className="preview__scrub-range"
+          min={0}
+          max={duration || 0}
+          step={0.01}
+          value={current}
+          onChange={seek}
+        />
         <span>{formatTime(duration)}</span>
         <button className="preview__mute-btn" onClick={toggleMute} aria-label={muted ? 'Unmute' : 'Mute'}>
           {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
