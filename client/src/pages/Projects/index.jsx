@@ -29,7 +29,11 @@ export default function Projects() {
 
   const filteredProjects = properties.filter((p) => {
     const matchesFilter = activeFilter === 'All' || p.location === activeFilter;
-    const matchesSearch = p.name.toLowerCase().includes(search.trim().toLowerCase());
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q ||
+      p.name.toLowerCase().startsWith(q) ||
+      (p.secondary_name && p.secondary_name.toLowerCase().includes(q)) ||
+      (p.location && p.location.toLowerCase().includes(q));
     return matchesFilter && matchesSearch;
   });
   const visibleProjects = filteredProjects.slice(0, visibleCount);
@@ -65,37 +69,37 @@ export default function Projects() {
       <div className="projects__list">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="projects__card" style={{ pointerEvents: 'none' }}>
-                <Skeleton width="56px" height="56px" radius="10px" />
-                <div style={{ flex: 1, marginLeft: 12 }}>
-                  <Skeleton width="60%" height="14px" radius="6px" />
-                  <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 6 }} />
-                </div>
+            <div key={i} className="projects__card" style={{ pointerEvents: 'none' }}>
+              <Skeleton width="56px" height="56px" radius="10px" />
+              <div style={{ flex: 1, marginLeft: 12 }}>
+                <Skeleton width="60%" height="14px" radius="6px" />
+                <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 6 }} />
               </div>
-            ))
+            </div>
+          ))
           : visibleProjects.map((p) => (
-              <button
-                key={p.id}
-                className="projects__card"
-                onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
+            <button
+              key={p.id}
+              className="projects__card"
+              onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
+            >
+              <div
+                className="projects__thumb"
+                style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
-                <div
-                  className="projects__thumb"
-                  style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-                >
-                  {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="projects__info">
-                  <p className="projects__name">{p.name}</p>
-                  {(p.secondary_name || p.location) && (
-                    <p className="projects__location">
-                      {[p.secondary_name, p.location].filter(Boolean).join(' — ')}
-                    </p>
-                  )}
-                  <p className="projects__count">{p.template_count}+ Creatives</p>
-                </div>
-              </button>
-            ))
+                {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="projects__info">
+                <p className="projects__name">{p.name}</p>
+                {(p.secondary_name || p.location) && (
+                  <p className="projects__location">
+                    {[p.secondary_name, p.location].filter(Boolean).join(' — ')}
+                  </p>
+                )}
+                <p className="projects__count">{p.template_count}+ Creatives</p>
+              </div>
+            </button>
+          ))
         }
 
         {!loading && filteredProjects.length === 0 && (

@@ -6,6 +6,7 @@ export default function SearchBar({
   onChange,
   onFocus,
   onBlur,
+  onKeyDown,
 }) {
   return (
     <div className="searchbar" onBlur={onBlur}>
@@ -20,6 +21,7 @@ export default function SearchBar({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         onFocus={onFocus}
+        onKeyDown={onKeyDown}
       />
       {/* <button className="searchbar__filter" aria-label="Filter">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

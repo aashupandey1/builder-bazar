@@ -82,7 +82,7 @@ export default function Dashboard() {
         const all = [...new Set([...names, ...secondaryNames, ...locations].filter(Boolean))];
         setSuggestionPool(all);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -137,6 +137,28 @@ export default function Dashboard() {
 
   const handleSearchChange = (val) => setSearch(val);
 
+  const handleSearchKeyDown = (e) => {
+    if (e.key !== 'Enter') return;
+    const term = search.trim();
+    if (!term) return;
+    searchAbortRef.current?.abort();
+    setShowSuggestions(false);
+    setSearchActive(true);
+    setIsSearching(true);
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+    axiosClient.get(ENDPOINTS.TEMPLATES, { params: { search: term, limit: 50 }, signal: controller.signal })
+      .then((res) => {
+        setTrending(res.data.data);
+        setHasMoreTrending(false);
+      })
+      .catch((err) => {
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+        setTrending([]);
+      })
+      .finally(() => setIsSearching(false));
+  };
+
   // Client-side filter: case-insensitive prefix match across the pooled names/locations
   const blurTimerRef = useRef(null);
   const filteredSuggestions = showSuggestions && search.trim().length > 0
@@ -167,6 +189,7 @@ export default function Dashboard() {
           onChange={handleSearchChange}
           onFocus={handleSearchFocus}
           onBlur={handleSearchBlur}
+          onKeyDown={handleSearchKeyDown}
         />
         {filteredSuggestions.length > 0 && (
           <ul className="dashboard__suggestions">
