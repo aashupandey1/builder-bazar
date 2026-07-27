@@ -63,6 +63,7 @@ function VideoPlayer({ src }) {
 
   const tapTimerRef = useRef(null);
   const lastTapRef = useRef(0);
+  const [seekFlash, setSeekFlash] = useState(null); // 'left' | 'right' | null
   const handleVideoTap = (e) => {
     const video = videoRef.current;
     if (!video) return;
@@ -73,6 +74,8 @@ function VideoPlayer({ src }) {
       clearTimeout(tapTimerRef.current);
       video.currentTime = Math.min(duration || video.currentTime, Math.max(0, video.currentTime + (isRight ? 5 : -5)));
       lastTapRef.current = 0;
+      setSeekFlash(isRight ? 'right' : 'left');
+      setTimeout(() => setSeekFlash(null), 400);
     } else {
       lastTapRef.current = now;
       tapTimerRef.current = setTimeout(togglePlay, 300);
@@ -93,6 +96,12 @@ function VideoPlayer({ src }) {
         playsInline
         onClick={handleVideoTap}
       />
+
+      {seekFlash && (
+        <div className={`preview__seek-flash preview__seek-flash--${seekFlash}`}>
+          {seekFlash === 'right' ? '+5s' : '-5s'}
+        </div>
+      )}
 
       <button className="preview__play-btn" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
         {playing ? <Pause size={22} /> : <Play size={22} />}

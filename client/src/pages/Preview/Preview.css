@@ -245,3 +245,40 @@
   border: none;
   color: #fff;
 }
+
+.preview__seek-flash {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  padding: 10px 16px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+  animation: seekFlashFade .4s ease-out;
+}
+
+.preview__seek-flash--left {
+  left: 16%;
+}
+
+.preview__seek-flash--right {
+  right: 16%;
+}
+
+@keyframes seekFlashFade {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
