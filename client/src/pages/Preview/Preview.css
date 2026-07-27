@@ -151,6 +151,12 @@
 
 /* Timeline */
 
+.preview__scrub-range {
+  flex: 1;
+  accent-color: #fff;
+  height: 4px;
+}
+
 .preview__scrub {
   position: absolute;
   left: 18px;
@@ -168,22 +174,7 @@
   z-index: 3;
 }
 
-.preview__scrub-bar {
-  flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 255, .3);
-  border-radius: 99px;
-}
 
-.preview__scrub-fill {
-  height: 100%;
-  background: #fff;
-  border-radius: 99px;
-}
-
-.preview__scrub-bar {
-  cursor: pointer;
-}
 
 .preview__play-btn {
   position: absolute;
