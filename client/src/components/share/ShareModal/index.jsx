@@ -9,7 +9,6 @@ import {
 } from "react-icons/fa";
 import {
   Download,
-  Share2,
   ChevronRight,
 } from "lucide-react";
 
@@ -27,10 +26,6 @@ const OPTIONS = [
     icon: <FaFacebook size={20} />,
   },
   {
-    name: "Share to All",
-    icon: <Share2 size={20} />,
-  },
-  {
     name: "Download",
     icon: <Download size={20} />,
   },
@@ -39,7 +34,7 @@ const OPTIONS = [
 export default function ShareModal(props) {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const [sharing, setSharing] = useState(false);
+  const [sharing, setSharing] = useState(null); // name of the option currently sharing, or null
   const fileUrl = state?.file_url || props.shareUrl || window.location.href;
   const shareUrl = state?.id
     ? `${import.meta.env.VITE_SERVER_BASE_URL}/share/template/${state.id}`
@@ -59,9 +54,9 @@ export default function ShareModal(props) {
 
   // Fetches the actual video/image and hands it to the OS share-sheet
   // (WhatsApp Status, Instagram, etc. then receive the real file, not a link)
-  const shareFileNatively = async () => {
+  const shareFileNatively = async (name) => {
     if (!preparedFile) return false;
-    setSharing(true);
+    setSharing(name);
     try {
       if (navigator.canShare && navigator.canShare({ files: [preparedFile] })) {
         await navigator.share({ files: [preparedFile], title: shareText, text: shareText });
@@ -70,7 +65,7 @@ export default function ShareModal(props) {
     } catch (err) {
       if (err?.name === 'AbortError') return true;
     } finally {
-      setSharing(false);
+      setSharing(null);
     }
     return false;
   };
@@ -79,13 +74,13 @@ export default function ShareModal(props) {
     if (disabled || sharing) return;
 
     if (name === "WhatsApp") {
-      const shared = await shareFileNatively();
+      const shared = await shareFileNatively(name);
       if (!shared) window.location.href = SHARE_LINKS.whatsapp; // same tab, no extra page
     } else if (name === "Instagram") {
-      const shared = await shareFileNatively();
+      const shared = await shareFileNatively(name);
       if (!shared) alert("Instagram sharing needs the Instagram app on your phone — open this on mobile.");
-    } else if (name === "Facebook" || name === "Share to All") {
-      const shared = await shareFileNatively();
+    } else if (name === "Facebook") {
+      const shared = await shareFileNatively(name);
       if (!shared) window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
     } else if (name === "Download") {
       fetch(fileUrl)
@@ -125,7 +120,7 @@ export default function ShareModal(props) {
             </span>
 
             <span className="sharemodal__list-text">
-              {["WhatsApp", "Instagram", "Facebook", "Share to All"].includes(item.name) && (sharing || !preparedFile) ? "Preparing video…" : item.name}
+              {sharing === item.name ? "Preparing video…" : item.name}
             </span>
 
             <ChevronRight size={18} />
