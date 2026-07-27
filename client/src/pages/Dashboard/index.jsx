@@ -217,8 +217,10 @@ export default function Dashboard() {
                   <img src={item.file_url} alt={item.title} />
                 )}
               </div>
-              <p className="dashboard__card-title">{item.title}</p>
-              <p className="dashboard__card-subtitle">{item.subtitle}</p>
+              <p className="dashboard__card-title">{item.property_name || item.title}</p>
+              <p className="dashboard__card-subtitle">
+                {[item.property_secondary_name, item.property_location].filter(Boolean).join(', ') || item.subtitle}
+              </p>
             </button>
           ))
         }
