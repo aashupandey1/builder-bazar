@@ -62,71 +62,6 @@ function VideoPlayer({ src }) {
     setCurrent(v);
   };
 
-  const tapTimerRef = useRef(null);
-  const lastTapRef = useRef(0);
-  // Set to true by onTouchEnd so the subsequent synthetic click can be skipped.
-  // pointerType is only on PointerEvent, not on plain click/MouseEvent, so we
-  // cannot rely on it — a ref flag is the safest cross-browser approach.
-  const touchHandledRef = useRef(false);
-  const [seekFlash, setSeekFlash] = useState(null); // 'left' | 'right' | null
-
-  /**
-   * WHY onTouchEnd instead of onClick:
-   * On mobile, onClick fires ~300 ms after touchend because the browser waits
-   * to see if a double-tap-zoom is coming. Even with touch-action:manipulation
-   * in the CSS (which removes the zoom gesture), React's synthetic onClick still
-   * arrives late enough that the 300 ms inter-tap window is unreliable.
-   * Using onTouchEnd gives us the raw touch timing — taps are typically
-   * 80–150 ms apart, so a 300 ms window is plenty without any browser delay.
-   *
-   * onClick is kept as a desktop (mouse/pointer) fallback only.
-   */
-  const handleTap = (clientX, currentTarget) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const now = Date.now();
-    const rect = currentTarget.getBoundingClientRect();
-    const isRight = (clientX - rect.left) > rect.width / 2;
-    if (now - lastTapRef.current < 300) {
-      // Double-tap detected — seek ±5 s
-      clearTimeout(tapTimerRef.current);
-      const dur = video.duration || 0;
-      video.currentTime = Math.min(dur, Math.max(0, video.currentTime + (isRight ? 5 : -5)));
-      lastTapRef.current = 0;
-      setSeekFlash(isRight ? 'right' : 'left');
-      setTimeout(() => setSeekFlash(null), 400);
-    } else {
-      // First tap — wait to see if a second tap arrives before toggling play
-      lastTapRef.current = now;
-      tapTimerRef.current = setTimeout(togglePlay, 300);
-    }
-  };
-
-  const handleVideoTouchEnd = (e) => {
-    e.preventDefault(); // prevent the subsequent synthetic click from firing
-    const touch = e.changedTouches[0];
-    handleTap(touch.clientX, e.currentTarget);
-    touchHandledRef.current = true; // tell the click handler to skip this event
-  };
-
-  // Desktop mouse fallback — skipped when the touch handler already ran.
-  // We use a ref flag rather than pointerType because pointerType only exists
-  // on PointerEvent, not on plain click/MouseEvent.
-  const handleVideoClick = (e) => {
-    if (touchHandledRef.current) { touchHandledRef.current = false; return; }
-    handleTap(e.clientX, e.currentTarget);
-  };
-
-  // Route play-button clicks through the same tap logic so that double-tapping
-  // the center of the video (where the button sits at z-index 3) participates
-  // in seek detection instead of bypassing it. We pass the video element's rect
-  // so left/right side detection is relative to the full video area.
-  const handlePlayBtnClick = (e) => {
-    const video = videoRef.current;
-    if (!video) return;
-    handleTap(e.clientX, video);
-  };
-
   const progress = duration ? (current / duration) * 100 : 0;
 
   return (
@@ -139,17 +74,9 @@ function VideoPlayer({ src }) {
         loop
         muted={muted}
         playsInline
-        onTouchEnd={handleVideoTouchEnd}
-        onClick={handleVideoClick}
       />
 
-      {seekFlash && (
-        <div className={`preview__seek-flash preview__seek-flash--${seekFlash}`}>
-          {seekFlash === 'right' ? '+5s' : '-5s'}
-        </div>
-      )}
-
-      <button className="preview__play-btn" onClick={handlePlayBtnClick} aria-label={playing ? 'Pause' : 'Play'}>
+      <button className="preview__play-btn" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
         {playing ? <Pause size={22} /> : <Play size={22} />}
       </button>
 
@@ -187,7 +114,11 @@ export default function Preview() {
   }, [state?.id]);
 
   useEffect(() => {
-    if (state?.file_url) prepareFile(state.file_url);
+    if (!state?.file_url) return;
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 3000));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const id = idle(() => prepareFile(state.file_url));
+    return () => cancel(id);
   }, [state?.file_url]);
 
   const toggleFavorite = () => {
