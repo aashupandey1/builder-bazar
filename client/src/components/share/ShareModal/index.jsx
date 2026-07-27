@@ -42,9 +42,13 @@ export default function ShareModal(props) {
   const shareText = props.shareText || state?.title || "Check this out!";
 
   const [preparedFile, setPreparedFile] = useState(null);
+  const [preparing, setPreparing] = useState(true); // true till file fetch finishes (success or fail)
   useEffect(() => {
     let cancelled = false;
-    prepareFile(fileUrl).then((file) => { if (!cancelled) setPreparedFile(file); });
+    setPreparing(true);
+    prepareFile(fileUrl)
+      .then((file) => { if (!cancelled) setPreparedFile(file); })
+      .finally(() => { if (!cancelled) setPreparing(false); });
     return () => { cancelled = true; };
   }, [fileUrl]);
   const SHARE_LINKS = {
@@ -55,11 +59,12 @@ export default function ShareModal(props) {
   // Fetches the actual video/image and hands it to the OS share-sheet
   // (WhatsApp Status, Instagram, etc. then receive the real file, not a link)
   const shareFileNatively = async (name) => {
-    if (!preparedFile) return false;
     setSharing(name);
     try {
-      if (navigator.canShare && navigator.canShare({ files: [preparedFile] })) {
-        await navigator.share({ files: [preparedFile], title: shareText, text: shareText });
+      // retry fetch here too — file may not have been ready when the modal first mounted
+      const file = preparedFile || (await prepareFile(fileUrl));
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: shareText, text: shareText });
         return true;
       }
     } catch (err) {
@@ -79,7 +84,7 @@ export default function ShareModal(props) {
     } else if (name === "Instagram") {
       const shared = await shareFileNatively(name);
       if (!shared) alert("Instagram sharing needs the Instagram app on your phone — open this on mobile.");
-    } else if (name === "Facebook") {
+    } else if (name === "Facebook" || name === "Share to All") {
       const shared = await shareFileNatively(name);
       if (!shared) window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
     } else if (name === "Download") {
@@ -112,7 +117,7 @@ export default function ShareModal(props) {
             className={`sharemodal__list-item ${item.disabled ? 'sharemodal__list-item--disabled' : ''}`}
             key={item.name}
             onClick={() => handleOption(item.name, item.disabled)}
-            disabled={item.disabled || sharing}
+            disabled={item.disabled || sharing || (preparing && item.name !== "Download")}
             title={item.disabled ? 'Coming soon' : undefined}
           >
             <span className={`sharemodal__list-icon icon-${item.name.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -120,7 +125,11 @@ export default function ShareModal(props) {
             </span>
 
             <span className="sharemodal__list-text">
-              {sharing === item.name ? "Preparing video…" : item.name}
+              {sharing === item.name
+                ? "Preparing video…"
+                : (preparing && item.name !== "Download")
+                  ? "Preparing…"
+                  : item.name}
             </span>
 
             <ChevronRight size={18} />

@@ -11,7 +11,10 @@ export function prepareFile(url) {
       const fileName = url.split('/').pop() || (isVideo ? 'video.mp4' : 'image.jpg');
       return new File([blob], fileName, { type: blob.type || (isVideo ? 'video/mp4' : 'image/jpeg') });
     })
-    .catch(() => null);
+    .catch((err) => {
+      cache.delete(url); // don't lock in failure, let next click retry
+      throw err;
+    });
 
   cache.set(url, promise);
   return promise;
