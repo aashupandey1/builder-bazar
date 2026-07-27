@@ -91,21 +91,36 @@ export default function Dashboard() {
     }
   }, [trendingLoading]);
 
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchActive, setSearchActive] = useState(false);
+  const searchAbortRef = useRef(null);
+
   const skipFirstSearch = useRef(true);
   useEffect(() => {
     if (skipFirstSearch.current) { skipFirstSearch.current = false; return; }
+    searchAbortRef.current?.abort();
     const term = search.trim();
     if (!term) {
+      setSearchActive(false);
+      setIsSearching(false);
       loadTrending(0, true);
       return;
     }
+    setSearchActive(true);
+    setIsSearching(true);
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
     const timer = setTimeout(() => {
-      axiosClient.get(ENDPOINTS.TEMPLATES, { params: { search: term, limit: 50 } })
+      axiosClient.get(ENDPOINTS.TEMPLATES, { params: { search: term, limit: 50 }, signal: controller.signal })
         .then((res) => {
           setTrending(res.data.data);
           setHasMoreTrending(false);
         })
-        .catch(() => setTrending([]));
+        .catch((err) => {
+          if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+          setTrending([]);
+        })
+        .finally(() => setIsSearching(false));
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -178,55 +193,59 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard__section-head">
-        <h3>Trending Now 🔥</h3>
+        <h3>{searchActive ? 'Search Results' : 'Trending Now 🔥'}</h3>
       </div>
 
-      <div className="dashboard__trending">
-        {trendingLoading
-          ? Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="dashboard__card" style={{ pointerEvents: 'none' }}>
-              <Skeleton width="100%" height="160px" radius="10px" />
-              <Skeleton width="65%" height="13px" radius="6px" style={{ marginTop: 8 }} />
-              <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 4 }} />
-            </div>
-          ))
-          : trending.map((item, index) => (
-            <button
-              key={item.id}
-              className="dashboard__card"
-              onClick={() => {
-                axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => { });
-                navigate('/preview', { state: item });
-              }}
-            >
-              <span className="dashboard__card-tag">{item.type}</span>
-              <div className="dashboard__card-image">
-                {isVideoTag(item.type) ? (
-                  <>
-                    <video
-                      src={item.file_url}
-                      loop playsInline
-                      preload="metadata"
-                      ref={(node) => { if (node) node.muted = true; }}
-                    />
-                    <span className="dashboard__card-play">
-                      <PlayIcon size={22} />
-                    </span>
-                  </>
-                ) : (
-                  <img src={item.file_url} alt={item.title} />
-                )}
+      {searchActive && !isSearching && trending.length === 0 ? (
+        <p className="dashboard__no-results">No results found for "{search.trim()}"</p>
+      ) : (
+        <div className="dashboard__trending">
+          {trendingLoading || isSearching
+            ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="dashboard__card" style={{ pointerEvents: 'none' }}>
+                <Skeleton width="100%" height="160px" radius="10px" />
+                <Skeleton width="65%" height="13px" radius="6px" style={{ marginTop: 8 }} />
+                <Skeleton width="40%" height="11px" radius="6px" style={{ marginTop: 4 }} />
               </div>
-              <p className="dashboard__card-title">{item.property_name || item.title}</p>
-              <p className="dashboard__card-subtitle">
-                {[item.property_secondary_name, item.property_location].filter(Boolean).join(', ') || item.subtitle}
-              </p>
-            </button>
-          ))
-        }
-      </div>
+            ))
+            : trending.map((item, index) => (
+              <button
+                key={item.id}
+                className="dashboard__card"
+                onClick={() => {
+                  axiosClient.post(`${ENDPOINTS.TEMPLATES}/${item.id}/view`).catch(() => { });
+                  navigate('/preview', { state: item });
+                }}
+              >
+                <span className="dashboard__card-tag">{item.type}</span>
+                <div className="dashboard__card-image">
+                  {isVideoTag(item.type) ? (
+                    <>
+                      <video
+                        src={item.file_url}
+                        loop playsInline
+                        preload="metadata"
+                        ref={(node) => { if (node) node.muted = true; }}
+                      />
+                      <span className="dashboard__card-play">
+                        <PlayIcon size={22} />
+                      </span>
+                    </>
+                  ) : (
+                    <img src={item.file_url} alt={item.title} />
+                  )}
+                </div>
+                <p className="dashboard__card-title">{item.property_name || item.title}</p>
+                <p className="dashboard__card-subtitle">
+                  {[item.property_secondary_name, item.property_location].filter(Boolean).join(', ') || item.subtitle}
+                </p>
+              </button>
+            ))
+          }
+        </div>
+      )}
 
-      {hasMoreTrending && (
+      {hasMoreTrending && !searchActive && (
         <button className="dashboard__view-more" onClick={() => loadTrending(trendingOffset)} disabled={moreLoading}>
           {moreLoading ? 'Loading...' : 'View More'}
         </button>

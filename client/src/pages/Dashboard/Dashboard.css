@@ -268,3 +268,10 @@
   border-color: #2f5fe0;
   color: #ffffff;
 }
+
+.dashboard__no-results {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  padding: 40px 20px;
+}
