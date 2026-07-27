@@ -5,11 +5,11 @@ import './ShareModal.css';
 import {
   FaWhatsapp,
   FaFacebook,
+  FaInstagram,
 } from "react-icons/fa";
 import {
   Download,
-  FolderPlus,
-  Users,
+  Share2,
   ChevronRight,
 } from "lucide-react";
 
@@ -19,22 +19,20 @@ const OPTIONS = [
     icon: <FaWhatsapp size={20} />,
   },
   {
+    name: "Instagram",
+    icon: <FaInstagram size={20} />,
+  },
+  {
     name: "Facebook",
     icon: <FaFacebook size={20} />,
   },
   {
+    name: "Share to All",
+    icon: <Share2 size={20} />,
+  },
+  {
     name: "Download",
     icon: <Download size={20} />,
-  },
-  {
-    name: "Save to My Studio",
-    disabled: true,
-    icon: <FolderPlus size={20} />,
-  },
-  {
-    name: "Share with Team",
-    disabled: true,
-    icon: <Users size={20} />,
   },
 ];
 
@@ -81,15 +79,14 @@ export default function ShareModal(props) {
     if (disabled || sharing) return;
 
     if (name === "WhatsApp") {
-      const canNativeShare = typeof navigator.share === 'function';
-      const waTab = canNativeShare ? null : window.open("", "_blank");
       const shared = await shareFileNatively();
-      if (!shared) {
-        if (waTab) waTab.location.href = SHARE_LINKS.whatsapp;
-        else window.open(SHARE_LINKS.whatsapp, "_blank", "noopener,noreferrer");
-      }
-    } else if (name === "Facebook") {
-      window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
+      if (!shared) window.location.href = SHARE_LINKS.whatsapp; // same tab, no extra page
+    } else if (name === "Instagram") {
+      const shared = await shareFileNatively();
+      if (!shared) alert("Instagram sharing needs the Instagram app on your phone — open this on mobile.");
+    } else if (name === "Facebook" || name === "Share to All") {
+      const shared = await shareFileNatively();
+      if (!shared) window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
     } else if (name === "Download") {
       fetch(fileUrl)
         .then((res) => res.blob())
@@ -128,7 +125,7 @@ export default function ShareModal(props) {
             </span>
 
             <span className="sharemodal__list-text">
-              {item.name === "WhatsApp" && (sharing || !preparedFile) ? "Preparing video…" : item.name}
+              {["WhatsApp", "Instagram", "Facebook", "Share to All"].includes(item.name) && (sharing || !preparedFile) ? "Preparing video…" : item.name}
             </span>
 
             <ChevronRight size={18} />
