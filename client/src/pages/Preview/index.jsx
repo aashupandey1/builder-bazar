@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Download, Heart, ArrowLeft } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
+import { prepareFile } from '../../utils/preparedFileCache';
 import './Preview.css';
 
 
@@ -184,6 +185,10 @@ export default function Preview() {
       .then((res) => setIsFavorite(res.data.data.some((t) => t.id === state.id)))
       .catch(() => { });
   }, [state?.id]);
+
+  useEffect(() => {
+    if (state?.file_url) prepareFile(state.file_url);
+  }, [state?.file_url]);
 
   const toggleFavorite = () => {
     if (!state?.id) return;

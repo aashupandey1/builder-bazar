@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { prepareFile } from '../../../utils/preparedFileCache';
 import './ShareModal.css';
 import {
   FaWhatsapp,
@@ -50,17 +51,7 @@ export default function ShareModal(props) {
   const [preparedFile, setPreparedFile] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    fetch(fileUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        if (cancelled) return;
-        const isVideo = blob.type.startsWith('video') || /\.(mp4|mov)$/i.test(fileUrl);
-        const fileName = fileUrl.split('/').pop() || (isVideo ? 'video.mp4' : 'image.jpg');
-        setPreparedFile(new File([blob], fileName, {
-          type: blob.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
-        }));
-      })
-      .catch(() => { });
+    prepareFile(fileUrl).then((file) => { if (!cancelled) setPreparedFile(file); });
     return () => { cancelled = true; };
   }, [fileUrl]);
   const SHARE_LINKS = {
