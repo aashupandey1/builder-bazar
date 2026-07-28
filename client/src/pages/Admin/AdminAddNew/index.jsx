@@ -52,6 +52,16 @@ function PickerField({ label, value, onChange, options, placeholder }) {
   );
 }
 
+const makeGroup = () => ({
+  key: Date.now() + Math.random(),
+  group: '',
+  name: '',
+  secondaryName: '',
+  location: '',
+  category: '',
+  files: [],
+});
+
 export default function AdminAddNew() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(null); // null | 'template' | 'project'
@@ -59,8 +69,7 @@ export default function AdminAddNew() {
   const [tplForm, setTplForm] = useState({ title: '', subtitle: '', type: 'Video', file: null });
   const [tplStatus, setTplStatus] = useState('');
 
-  const [projForm, setProjForm] = useState({ name: '', location: '', secondaryName: '', category: '' });
-  const [projGroups, setProjGroups] = useState([{ key: 0, group: '', files: [] }]);
+  const [projGroups, setProjGroups] = useState([makeGroup()]);
   const [projStatus, setProjStatus] = useState('');
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [], groups: [] });
 
@@ -69,9 +78,9 @@ export default function AdminAddNew() {
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
       .catch(() => { });
   }, []);
-  const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
 
-  const addGroup = () => setProjGroups((g) => [...g, { key: Date.now(), group: '', files: [] }]);
+  const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
+  const addGroup = () => setProjGroups((g) => [...g, makeGroup()]);
   const removeGroup = (key) => setProjGroups((g) => g.filter((x) => x.key !== key));
   const updateGroup = (key, patch) => setProjGroups((g) => g.map((x) => (x.key === key ? { ...x, ...patch } : x)));
 
@@ -97,21 +106,29 @@ export default function AdminAddNew() {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
-    if (!projForm.name.trim()) return setProjStatus('Property name zaroori hai');
-    const groupsWithFiles = projGroups.filter((g) => g.files.length);
-    if (!groupsWithFiles.length) return setProjStatus('Kam se kam 1 media file zaroori hai');
+
+    // Every group must have a Primary Name
+    const missingName = projGroups.find((g) => !g.name.trim());
+    if (missingName) return setProjStatus('Har group mein Primary Name zaroori hai');
+
+    // Every group must have at least one file
+    const missingFiles = projGroups.find((g) => g.files.length === 0);
+    if (missingFiles) return setProjStatus('Har group mein kam se kam 1 media file zaroori hai');
+
     setProjStatus('Saving...');
     try {
-      const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
-        name: projForm.name,
-        location: projForm.location,
-        secondary_name: projForm.secondaryName,
-        category: projForm.category,
-      });
-      const property = propRes.data.data;
+      for (const grp of projGroups) {
+        // Create a separate property for each group
+        const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
+          name: grp.name,
+          location: grp.location,
+          secondary_name: grp.secondaryName,
+          category: grp.category,
+        });
+        const property = propRes.data.data;
 
-      setProjStatus('Uploading media...');
-      for (const grp of groupsWithFiles) {
+        // Upload this group's media, batched by type
+        setProjStatus(`Uploading media for "${grp.name}"...`);
         const byType = grp.files.reduce((acc, { file, type }) => {
           (acc[type] ??= []).push(file);
           return acc;
@@ -119,7 +136,7 @@ export default function AdminAddNew() {
         await Promise.all(
           Object.entries(byType).map(([type, files]) => {
             const data = new FormData();
-            data.append('title', projForm.name);
+            data.append('title', grp.name);
             data.append('subtitle', grp.group);
             data.append('type', type);
             data.append('project_id', property.id);
@@ -129,9 +146,8 @@ export default function AdminAddNew() {
         );
       }
 
-      setProjStatus('Project created');
-      setProjForm({ name: '', location: '', secondaryName: '', category: '' });
-      setProjGroups([{ key: Date.now(), group: '', files: [] }]);
+      setProjStatus('Project created!');
+      setProjGroups([makeGroup()]);
       navigate('/admin/projects');
     } catch (err) {
       setProjStatus(err.response?.data?.message || 'Save failed');
@@ -167,64 +183,95 @@ export default function AdminAddNew() {
       </button>
       {open === 'project' && (
         <form className="upload-card" onSubmit={handleCreateProject}>
-          <div className="upload-card__grid">
-            <PickerField label="Primary Name" value={projForm.name} onChange={(v) => setProjForm({ ...projForm, name: v })} options={suggestions.names} placeholder="Select primary name" />
-            <PickerField label="Secondary Name" value={projForm.secondaryName} onChange={(v) => setProjForm({ ...projForm, secondaryName: v })} options={suggestions.secondaryNames} placeholder="Select secondary name" />
-            <PickerField label="Location" value={projForm.location} onChange={(v) => setProjForm({ ...projForm, location: v })} options={suggestions.locations} placeholder="Select location" />
-            <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
-          </div>
-
           {projGroups.map((grp) => (
             <div key={grp.key} className="upload-card__group">
-              {grp.key === projGroups[0].key && (
-                <PickerField
-                  label="Group"
-                  value={grp.group}
-                  onChange={(v) => updateGroup(grp.key, { group: v })}
-                  options={suggestions.groups}
-                  placeholder="Select or add group"
-                />
-              )}
-              {grp.key !== projGroups[0].key && (
-                <PickerField
-                  label="Group"
-                  value={grp.group}
-                  onChange={(v) => updateGroup(grp.key, { group: v })}
-                  options={suggestions.groups}
-                  placeholder="Select or add group"
-                />
-              )}
 
+              {/* Group — sits above the 2×2 property grid */}
+              <PickerField
+                label="Group"
+                value={grp.group}
+                onChange={(v) => updateGroup(grp.key, { group: v })}
+                options={suggestions.groups}
+                placeholder="Select or add group"
+              />
+
+              {/* Property fields — 2×2 grid */}
+              <div className="upload-card__grid">
+                <PickerField
+                  label="Primary Name"
+                  value={grp.name}
+                  onChange={(v) => updateGroup(grp.key, { name: v })}
+                  options={suggestions.names}
+                  placeholder="Select primary name"
+                />
+                <PickerField
+                  label="Secondary Name"
+                  value={grp.secondaryName}
+                  onChange={(v) => updateGroup(grp.key, { secondaryName: v })}
+                  options={suggestions.secondaryNames}
+                  placeholder="Select secondary name"
+                />
+                <PickerField
+                  label="Location"
+                  value={grp.location}
+                  onChange={(v) => updateGroup(grp.key, { location: v })}
+                  options={suggestions.locations}
+                  placeholder="Select location"
+                />
+                <PickerField
+                  label="Category"
+                  value={grp.category}
+                  onChange={(v) => updateGroup(grp.key, { category: v })}
+                  options={CATEGORIES}
+                  placeholder="Select category"
+                />
+              </div>
+
+              {/* Files */}
               <p className="upload-card__section-label">Media — For this group</p>
               <label className="upload-card__file">
                 <UploadCloud size={18} />
                 <span>{grp.files.length ? `${grp.files.length} file(s) selected` : 'Choose media files (required)'}</span>
-                <input type="file" multiple accept="image/*,video/*" hidden onChange={(e) => {
-                  const chosen = Array.from(e.target.files).map((file) => ({
-                    file,
-                    type: file.type.startsWith('video/') ? 'Video' : 'Poster',
-                  }));
-                  updateGroup(grp.key, { files: [...grp.files, ...chosen] });
-                  e.target.value = '';
-                }} />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  hidden
+                  onChange={(e) => {
+                    const chosen = Array.from(e.target.files).map((file) => ({
+                      file,
+                      type: file.type.startsWith('video/') ? 'Video' : 'Poster',
+                    }));
+                    updateGroup(grp.key, { files: [...grp.files, ...chosen] });
+                    e.target.value = '';
+                  }}
+                />
               </label>
               {grp.files.map((f, i) => (
                 <div key={i} className="upload-card__file-row">
                   <span>{f.file.name}</span>
-                  <select value={f.type} onChange={(e) => {
-                    const type = e.target.value;
-                    updateGroup(grp.key, { files: grp.files.map((x, idx) => idx === i ? { ...x, type } : x) });
-                  }}>
+                  <select
+                    value={f.type}
+                    onChange={(e) => {
+                      const type = e.target.value;
+                      updateGroup(grp.key, { files: grp.files.map((x, idx) => idx === i ? { ...x, type } : x) });
+                    }}
+                  >
                     {TEMPLATE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
-                  <button type="button" onClick={() =>
-                    updateGroup(grp.key, { files: grp.files.filter((_, idx) => idx !== i) })
-                  }>✕</button>
+                  <button
+                    type="button"
+                    onClick={() => updateGroup(grp.key, { files: grp.files.filter((_, idx) => idx !== i) })}
+                  >✕</button>
                 </div>
               ))}
 
               {projGroups.length > 1 && (
-                <button type="button" className="upload-card__remove-group" onClick={() => removeGroup(grp.key)}>
+                <button
+                  type="button"
+                  className="upload-card__remove-group"
+                  onClick={() => removeGroup(grp.key)}
+                >
                   Remove this group
                 </button>
               )}
@@ -232,10 +279,10 @@ export default function AdminAddNew() {
           ))}
 
           <button type="button" className="upload-card__add-group" onClick={addGroup}>
-            + Add one more Projects
+            + Add one more project group
           </button>
 
-          <button type="submit" className="upload-card__submit">Add Project</button>
+          <button type="submit" className="upload-card__submit">Add Projects</button>
           {projStatus && <p className="upload-card__status">{projStatus}</p>}
         </form>
       )}
