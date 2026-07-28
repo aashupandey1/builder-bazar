@@ -69,7 +69,12 @@ export default function Login() {
         <p className="login__subtitle">Sign in to continue to your account</p>
 
         <button className="login__google-btn" onClick={handleGoogleLogin} type="button">
-          <span className="login__google-icon">G</span>
+          <svg className="login__google-icon" viewBox="0 0 48 48" width="20" height="20">
+            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.5-.4-3.5z"/>
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 16.3 3 9.7 7.3 6.3 14.7z"/>
+            <path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 36 26.9 37 24 37c-5.3 0-9.7-3.1-11.3-7.6l-6.6 5C9.6 40.6 16.2 45 24 45z"/>
+            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.5l6.6 5.4C41.5 35.8 45 30.4 45 24c0-1.4-.1-2.5-.4-3.5z"/>
+          </svg>
           Continue with Google
         </button>
 

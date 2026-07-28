@@ -21,6 +21,7 @@
   height: 48px;
   display: block;
   margin: 0 auto 16px;
+  border-radius: 12px;
 }
 
 .login__title {
@@ -54,8 +55,7 @@
 }
 
 .login__google-icon {
-  font-weight: 700;
-  color: #4285f4;
+  flex-shrink: 0;
 }
 
 .login__divider {
