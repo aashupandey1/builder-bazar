@@ -161,10 +161,70 @@
 
 /* Timeline */
 
-.preview__scrub-range {
+.preview__scrub-track {
+  position: relative;
   flex: 1;
-  accent-color: #fff;
   height: 4px;
+}
+
+.preview__scrub-buffered,
+.preview__scrub-played {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.preview__scrub-buffered {
+  background: rgba(255, 255, 255, 0.35);
+  z-index: 1;
+}
+
+.preview__scrub-played {
+  background: #fff;
+  z-index: 2;
+}
+
+.preview__scrub-range {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  transform: translateY(-50%);
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  z-index: 3;
+}
+
+.preview__scrub-range::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 4px;
+}
+
+.preview__scrub-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.preview__scrub-range::-moz-range-track {
+  background: transparent;
+  height: 4px;
+}
+
+.preview__scrub-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .preview__scrub {
@@ -281,7 +341,7 @@
 
 @keyframes seekFlashFade {
   0% {
- 
+
     opacity: 0;
   }
 

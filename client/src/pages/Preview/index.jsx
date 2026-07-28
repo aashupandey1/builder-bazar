@@ -23,17 +23,26 @@ function VideoPlayer({ src }) {
   const [muted, setMuted] = useState(true);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [buffered, setBuffered] = useState(0);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     const onTime = () => setCurrent(video.currentTime);
     const onMeta = () => setDuration(video.duration);
+    const onProgress = () => {
+      if (video.buffered.length && video.duration) {
+        const end = video.buffered.end(video.buffered.length - 1);
+        setBuffered((end / video.duration) * 100);
+      }
+    };
     video.addEventListener('timeupdate', onTime);
     video.addEventListener('loadedmetadata', onMeta);
+    video.addEventListener('progress', onProgress);
     return () => {
       video.removeEventListener('timeupdate', onTime);
       video.removeEventListener('loadedmetadata', onMeta);
+      video.removeEventListener('progress', onProgress);
     };
   }, []);
 
@@ -76,15 +85,19 @@ function VideoPlayer({ src }) {
 
       <div className="preview__scrub">
         <span>{formatTime(current)}</span>
-        <input
-          type="range"
-          className="preview__scrub-range"
-          min={0}
-          max={duration || 0}
-          step={0.01}
-          value={current}
-          onChange={seek}
-        />
+        <div className="preview__scrub-track">
+          <div className="preview__scrub-buffered" style={{ width: `${buffered}%` }} />
+          <div className="preview__scrub-played" style={{ width: `${progress}%` }} />
+          <input
+            type="range"
+            className="preview__scrub-range"
+            min={0}
+            max={duration || 0}
+            step={0.01}
+            value={current}
+            onChange={seek}
+          />
+        </div>
         <span>{formatTime(duration)}</span>
         <button className="preview__mute-btn" onClick={toggleMute} aria-label={muted ? 'Unmute' : 'Mute'}>
           {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
