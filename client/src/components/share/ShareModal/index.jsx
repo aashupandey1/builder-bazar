@@ -90,17 +90,25 @@ export default function ShareModal(props) {
       const shared = await shareFileNatively(name);
       if (!shared) alert("Sharing isn't supported on this browser — try opening this page on your phone.");
     } else if (name === "Download") {
-      fetch(fileUrl)
-        .then((res) => res.blob())
-        .then((blob) => {
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = fileUrl.split("/").pop() || "download";
-          a.click();
-          URL.revokeObjectURL(blobUrl);
-        })
-        .catch(() => alert("Download failed, try again."));
+      try {
+        const file = preparedFile || (await prepareFile(fileUrl));
+        if (!file) { alert("Download failed, try again."); return; }
+
+        const ext = file.name.split(".").pop() || (file.type.startsWith("video") ? "mp4" : "jpg");
+        const safeTitle = (shareText || "download")
+          .trim()
+          .replace(/[^a-zA-Z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "download";
+
+        const blobUrl = URL.createObjectURL(file);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = `${safeTitle}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(blobUrl);
+      } catch {
+        alert("Download failed, try again.");
+      }
     }
   };
 
