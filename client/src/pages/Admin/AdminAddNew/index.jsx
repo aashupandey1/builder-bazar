@@ -64,12 +64,11 @@ export default function AdminAddNew() {
   const [projStatus, setProjStatus] = useState('');
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [], groups: [] });
 
-  useEffect(() => {
+   useEffect(() => {
     axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
-      .then((res) => setSuggestions(res.data.data))
+      .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
       .catch(() => { });
   }, []);
-
   const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
 
   const addGroup = () => setProjGroups((g) => [...g, { key: Date.now(), group: '', files: [] }]);
