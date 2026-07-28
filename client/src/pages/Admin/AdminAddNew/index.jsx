@@ -43,7 +43,7 @@ function PickerField({ label, value, onChange, options, placeholder }) {
                   + Add "{search.trim()}"
                 </button>
               )}
-              {!filtered.length && !term && <p className="picker-sheet__empty">Koi option nahi hai abhi</p>}
+              {!filtered.length && !term && <p className="picker-sheet__empty">There is no option right now</p>}
             </div>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function AdminAddNew() {
   const [projStatus, setProjStatus] = useState('');
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [], groups: [] });
 
-   useEffect(() => {
+  useEffect(() => {
     axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
       .catch(() => { });
@@ -172,18 +172,20 @@ export default function AdminAddNew() {
             <PickerField label="Secondary Name" value={projForm.secondaryName} onChange={(v) => setProjForm({ ...projForm, secondaryName: v })} options={suggestions.secondaryNames} placeholder="Select secondary name" />
             <PickerField label="Location" value={projForm.location} onChange={(v) => setProjForm({ ...projForm, location: v })} options={suggestions.locations} placeholder="Select location" />
             <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
-            <PickerField
-              label="Group"
-              value={projGroups[0].group}
-              onChange={(v) => updateGroup(projGroups[0].key, { group: v })}
-              options={suggestions.groups}
-              placeholder="Select or add group"
-            />
           </div>
 
-          {projGroups.map((grp, gi) => (
+          {projGroups.map((grp) => (
             <div key={grp.key} className="upload-card__group">
-              {gi > 0 && (
+              {grp.key === projGroups[0].key && (
+                <PickerField
+                  label="Group"
+                  value={grp.group}
+                  onChange={(v) => updateGroup(grp.key, { group: v })}
+                  options={suggestions.groups}
+                  placeholder="Select or add group"
+                />
+              )}
+              {grp.key !== projGroups[0].key && (
                 <PickerField
                   label="Group"
                   value={grp.group}
