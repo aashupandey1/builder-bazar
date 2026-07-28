@@ -98,7 +98,8 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
 //   selectedName  — display name of selected group
 //   onSelect(id, name, logoUrl) — called when user picks an existing group
 //   onCreateGroup(name, logoFile) → Promise<{ id, name, logo_url }> — called on "+ Add"
-function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, onCreateGroup, placeholder }) {
+//   onRemoveGroup(id) — optional callback to remove group from suggestion list / API
+function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, onCreateGroup, onRemoveGroup, placeholder }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [logoFile, setLogoFile] = useState(null);
@@ -147,6 +148,11 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
     }
   };
 
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    if (onRemoveGroup) onRemoveGroup(id);
+  };
+
   const displayLabel = selectedId ? selectedName : null;
 
   return (
@@ -182,6 +188,16 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
                     {g.logo_url && <img src={g.logo_url} alt="" className="picker-sheet__group-logo" />}
                     {g.name}
                   </button>
+                  {onRemoveGroup && (
+                    <button
+                      type="button"
+                      className="picker-sheet__option-delete"
+                      onClick={(e) => handleDelete(e, g.id)}
+                      aria-label={`Remove ${g.name}`}
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               ))}
 
@@ -298,6 +314,17 @@ export default function AdminAddNew() {
     const newGroup = res.data.data;
     setGroups((prev) => [...prev, newGroup].sort((a, b) => a.name.localeCompare(b.name)));
     return newGroup;
+  };
+
+  const deleteGroup = async (id) => {
+    await axiosClient.delete(`${ENDPOINTS.GROUPS}/${id}`);
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+    // Also clear selection in projGroups if deleted group was selected
+    setProjGroups((prev) =>
+      prev.map((x) =>
+        x.groupId === id ? { ...x, groupId: null, groupName: '' } : x
+      )
+    );
   };
 
 
@@ -431,7 +458,9 @@ export default function AdminAddNew() {
                 placeholder="Select or create a builder"
                 onSelect={(id, name) => updateGroup(grp.key, { groupId: id, groupName: name })}
                 onCreateGroup={createGroup}
+                onRemoveGroup={deleteGroup}
               />
+
 
               {/* Property fields — 2×2 grid */}
               <div className="upload-card__grid">
