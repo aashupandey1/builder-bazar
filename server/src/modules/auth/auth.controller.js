@@ -22,10 +22,10 @@ module.exports.sendOtp = async (req, res, next) => {
     const otp = authService.generateOtp();
     await authService.saveOtp(mobile, otp);
 
-    // TODO: wire a real SMS provider here (MSG91/Twilio) once API keys are available.
     console.log(`[OTP] ${mobile} -> ${otp}`);
 
-    res.json({ success: true, message: 'OTP sent' });
+    const devOtp = process.env.DEV_OTP_EXPOSE === 'true' ? otp : undefined;
+    res.json({ success: true, message: 'OTP sent', devOtp });
   } catch (err) {
     next(err);
   }
