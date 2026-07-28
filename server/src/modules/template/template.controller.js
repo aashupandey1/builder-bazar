@@ -1,14 +1,12 @@
 const service = require('./template.service');
 const AppError = require('../../core/errors/AppError');
 const cloudinary = require('../../core/config/cloudinary');
-const path = require('path');
 
-const SERVER_BASE_URL = process.env.SERVER_BASE_URL || '';
 module.exports.list = async (req, res, next) => {
   try {
     const data = await service.list({
       sort: req.query.sort,
-      projectId: req.query.project_id,
+      listingId: req.query.listing_id,
       type: req.query.type,
       featured: req.query.featured,
       search: req.query.search,
@@ -39,18 +37,16 @@ module.exports.trackUsage = async (req, res, next) => {
   }
 };
 
-// Placeholder for the future admin panel - no UI yet, hits this directly.
 module.exports.setFeatured = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') throw new AppError('Admin access required', 403);
-    const data = await service.setFeatured(req.params.id, req.body.project_id);
+    const data = await service.setFeatured(req.params.id, req.body.listing_id);
     res.json({ success: true, message: 'Hero template updated', data });
   } catch (err) {
     next(err);
   }
 };
 
-// Bulk upload: req.files aayega multer se (array), sabke liye same title/type body se
 module.exports.create = async (req, res, next) => {
   try {
     const files = req.files || [];
@@ -65,7 +61,7 @@ module.exports.create = async (req, res, next) => {
           fileUrl: file.path,
           thumbnailUrl: null,
           createdBy: req.user.id,
-          projectId: req.body.project_id,
+          listingId: req.body.listing_id,
         })
       )
     );

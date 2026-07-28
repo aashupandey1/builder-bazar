@@ -20,7 +20,7 @@ export default function AdminDashboard() {
       axiosClient.get(`${ENDPOINTS.TEMPLATES}/stats`)
         .then((res) => setTemplateStats(res.data.data))
         .catch(() => setTemplateStats({ total: 0, byType: [], featured: null })),
-      axiosClient.get(ENDPOINTS.PROPERTIES)
+      axiosClient.get(ENDPOINTS.LISTINGS)
         .then((res) => setProjectCount(res.data.data.length))
         .catch(() => setProjectCount(0)),
     ]).finally(() => setLoading(false));

@@ -18,13 +18,13 @@ export default function Gallery() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const key = location.state?.projectId || 'all';
+    const key = location.state?.listingId || 'all';
     if (galleryCache?.key === key) {
       setItems(galleryCache.items);
       setLoading(false);
     } else {
       setLoading(true);
-      const params = location.state?.projectId ? { project_id: location.state.projectId } : {};
+      const params = location.state?.listingId ? { listing_id: location.state.listingId } : {};
       axiosClient.get(ENDPOINTS.TEMPLATES, { params })
         .then((res) => {
           setItems(res.data.data);
@@ -36,7 +36,7 @@ export default function Gallery() {
     return () => {
       if (galleryCache?.key === key) galleryCache.scrollY = window.scrollY;
     };
-  }, [location.state?.projectId]);
+  }, [location.state?.listingId]);
 
   useLayoutEffect(() => {
     if (!loading && galleryCache?.scrollY) {

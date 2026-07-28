@@ -1,12 +1,12 @@
 const db = require('../../core/config/db');
 
-module.exports.findAll = async ({ sort, projectId, type, featured, search, limit = 10, offset = 0 } = {}) => {
+module.exports.findAll = async ({ sort, listingId, type, featured, search, limit = 10, offset = 0 } = {}) => {
   const orderBy = sort === 'trending' ? 't.usage_count DESC' : 't.created_at DESC';
   const conditions = [];
   const params = [];
-  if (projectId) {
-    params.push(projectId);
-    conditions.push(`t.project_id = $${params.length}`);
+  if (listingId) {
+    params.push(listingId);
+    conditions.push(`t.listing_id = $${params.length}`);
   }
   if (type) {
     params.push(type);
@@ -22,10 +22,10 @@ module.exports.findAll = async ({ sort, projectId, type, featured, search, limit
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);
   const result = await db.query(
-    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location,
+    `SELECT t.*, p.name AS listing_name, p.secondary_name AS listing_secondary_name, p.location AS listing_location,
             g.name AS group_name, g.logo_url AS group_logo_url
      FROM templates t
-     LEFT JOIN properties p ON p.id = t.project_id
+     LEFT JOIN listings p ON p.id = t.listing_id
      LEFT JOIN groups g ON g.id = p.group_id
      ${where} ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
@@ -33,8 +33,6 @@ module.exports.findAll = async ({ sort, projectId, type, featured, search, limit
   return result.rows;
 };
 
-
-// ponytail: one grouped-count query + one featured lookup, no separate stats table needed
 module.exports.stats = async () => {
   const byType = await db.query('SELECT type, COUNT(*)::int AS count FROM templates GROUP BY type');
   const featured = await db.query('SELECT id, title, type FROM templates WHERE is_featured = TRUE LIMIT 1');
@@ -49,10 +47,7 @@ module.exports.incrementUsage = async (id) => {
   await db.query('UPDATE templates SET usage_count = usage_count + 1 WHERE id = $1', [id]);
 };
 
-// Only one template can be featured at a time PER PROJECT - single statement keeps it atomic.
-// WHERE clause limits the update to the previously-featured row(s) + the new target
-// within the same project, instead of touching every row in the table.
-module.exports.setFeatured = async (id, projectId) => {
+module.exports.setFeatured = async (id, listingId) => {
   await db.query(
     'UPDATE templates SET is_featured = (id = $1) WHERE is_featured = TRUE OR id = $1',
     [id]
@@ -61,11 +56,11 @@ module.exports.setFeatured = async (id, projectId) => {
   return result.rows[0] || null;
 };
 
-module.exports.create = async ({ type, title, subtitle, fileUrl, thumbnailUrl, createdBy, projectId }) => {
+module.exports.create = async ({ type, title, subtitle, fileUrl, thumbnailUrl, createdBy, listingId }) => {
   const result = await db.query(
-    `INSERT INTO templates (type, title, subtitle, file_url, thumbnail_url, created_by, project_id)
+    `INSERT INTO templates (type, title, subtitle, file_url, thumbnail_url, created_by, listing_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-    [type, title, subtitle, fileUrl, thumbnailUrl, createdBy, projectId || null]
+    [type, title, subtitle, fileUrl, thumbnailUrl, createdBy, listingId || null]
   );
   return result.rows[0];
 };
@@ -75,13 +70,12 @@ module.exports.findById = async (id) => {
   return result.rows[0] || null;
 };
 
-// Richer variant used by preview/share: includes property + group context for OG tags.
 module.exports.findByIdWithContext = async (id) => {
   const result = await db.query(
-    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location,
+    `SELECT t.*, p.name AS listing_name, p.secondary_name AS listing_secondary_name, p.location AS listing_location,
             g.name AS group_name, g.logo_url AS group_logo_url
      FROM templates t
-     LEFT JOIN properties p ON p.id = t.project_id
+     LEFT JOIN listings p ON p.id = t.listing_id
      LEFT JOIN groups g ON g.id = p.group_id
      WHERE t.id = $1`,
     [id]

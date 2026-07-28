@@ -76,7 +76,7 @@ export default function Dashboard() {
         .finally(() => setHeroLoading(false));
     }
     // Fetch suggestion pool once — names + secondaryNames + locations combined into one flat deduped list
-    axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
+    axiosClient.get(ENDPOINTS.LISTING_SUGGESTIONS)
       .then((res) => {
         const { names = [], secondaryNames = [], locations = [] } = res.data.data;
         const all = [...new Set([...names, ...secondaryNames, ...locations].filter(Boolean))];
@@ -235,7 +235,7 @@ export default function Dashboard() {
               className="dashboard__hero-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate('/gallery', { state: { projectId: hero.project_id, name: hero.subtitle } });
+                navigate('/gallery', { state: { listingId: hero.listing_id, name: hero.subtitle } });
               }}
             >
               View Project
@@ -313,9 +313,9 @@ export default function Dashboard() {
                     <img src={item.file_url} alt={item.title} />
                   )}
                 </div>
-                <p className="dashboard__card-title">{item.property_name || item.title}</p>
+                <p className="dashboard__card-title">{item.listing_name || item.title}</p>
                 <p className="dashboard__card-subtitle">
-                  {[item.property_secondary_name, item.property_location].filter(Boolean).join(', ') || item.subtitle}
+                  {[item.listing_secondary_name, item.listing_location].filter(Boolean).join(', ') || item.subtitle}
                 </p>
               </button>
             ))

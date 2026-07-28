@@ -1,4 +1,4 @@
-const service = require('./property.service');
+const service = require('./listing.service');
 
 module.exports.list = async (req, res, next) => {
   try {
@@ -21,7 +21,7 @@ module.exports.suggestions = async (req, res, next) => {
 module.exports.create = async (req, res, next) => {
   try {
     const data = await service.create(req.body);
-    res.status(201).json({ success: true, message: 'Property created', data });
+    res.status(201).json({ success: true, message: 'Listing created', data });
   } catch (err) {
     next(err);
   }
@@ -30,7 +30,7 @@ module.exports.create = async (req, res, next) => {
 module.exports.update = async (req, res, next) => {
   try {
     const data = await service.update(req.params.id, req.body);
-    res.json({ success: true, message: 'Property updated', data });
+    res.json({ success: true, message: 'Listing updated', data });
   } catch (err) {
     next(err);
   }
@@ -39,7 +39,7 @@ module.exports.update = async (req, res, next) => {
 module.exports.remove = async (req, res, next) => {
   try {
     await service.remove(req.params.id);
-    res.json({ success: true, message: 'Property deleted' });
+    res.json({ success: true, message: 'Listing deleted' });
   } catch (err) {
     next(err);
   }

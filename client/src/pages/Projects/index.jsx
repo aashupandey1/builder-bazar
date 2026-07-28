@@ -11,7 +11,7 @@ import './Projects.css';
 const PREVIEW_COUNT = 10;
 
 export default function Projects() {
-  const [properties, setProperties] = useState([]);
+  const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -19,15 +19,15 @@ export default function Projects() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.PROPERTIES)
-      .then((res) => setProperties(res.data.data))
-      .catch(() => setProperties([]))
+    axiosClient.get(ENDPOINTS.LISTINGS)
+      .then((res) => setListings(res.data.data))
+      .catch(() => setListings([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const locations = ['All', ...new Set(properties.map((p) => p.location).filter(Boolean))];
+  const locations = ['All', ...new Set(listings.map((p) => p.location).filter(Boolean))];
 
-  const filteredProjects = properties.filter((p) => {
+  const filteredProjects = listings.filter((p) => {
     const matchesFilter = activeFilter === 'All' || p.location === activeFilter;
     const q = search.trim().toLowerCase();
     const matchesSearch = !q ||
@@ -81,7 +81,7 @@ export default function Projects() {
             <button
               key={p.id}
               className="projects__card"
-              onClick={() => navigate('/gallery', { state: { projectId: p.id, name: p.name } })}
+              onClick={() => navigate('/gallery', { state: { listingId: p.id, name: p.name } })}
             >
               <div
                 className="projects__thumb"

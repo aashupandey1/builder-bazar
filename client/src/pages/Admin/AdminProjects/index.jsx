@@ -9,7 +9,7 @@ import './AdminProjects.css';
 const isVideoTag = (tag) => tag === 'Video' || tag === 'Reel';
 
 export default function AdminProjects() {
-  const [properties, setProperties] = useState([]);
+  const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
@@ -20,17 +20,17 @@ export default function AdminProjects() {
   const [editTemplateTitle, setEditTemplateTitle] = useState('');
 
   const refresh = () => {
-    axiosClient.get(ENDPOINTS.PROPERTIES).then((res) => setProperties(res.data.data));
+    axiosClient.get(ENDPOINTS.LISTINGS).then((res) => setListings(res.data.data));
   };
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.PROPERTIES)
-      .then((res) => setProperties(res.data.data))
+    axiosClient.get(ENDPOINTS.LISTINGS)
+      .then((res) => setListings(res.data.data))
       .finally(() => setLoading(false));
   }, []);
 
   const loadProjectTemplates = async (id) => {
-    const res = await axiosClient.get(ENDPOINTS.TEMPLATES, { params: { project_id: id, limit: 50 } });
+    const res = await axiosClient.get(ENDPOINTS.TEMPLATES, { params: { listing_id: id, limit: 50 } });
     setProjectTemplates(res.data.data);
   };
 
@@ -41,7 +41,7 @@ export default function AdminProjects() {
   };
 
   const setProjectHero = async (templateId) => {
-    await axiosClient.patch(`${ENDPOINTS.TEMPLATES}/${templateId}/feature`, { project_id: expandedId });
+    await axiosClient.patch(`${ENDPOINTS.TEMPLATES}/${templateId}/feature`, { listing_id: expandedId });
     loadProjectTemplates(expandedId);
   };
 
@@ -62,22 +62,22 @@ export default function AdminProjects() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete karna hai?')) return;
-    await axiosClient.delete(`${ENDPOINTS.PROPERTIES}/${id}`);
+    await axiosClient.delete(`${ENDPOINTS.LISTINGS}/${id}`);
     refresh();
   };
 
   const saveEdit = async (id) => {
-    await axiosClient.put(`${ENDPOINTS.PROPERTIES}/${id}`, { name: editName });
+    await axiosClient.put(`${ENDPOINTS.LISTINGS}/${id}`, { name: editName });
     setEditingId(null);
     refresh();
   };
 
   const q = search.trim().toLowerCase();
   const visible = q
-    ? properties.filter((p) =>
+    ? listings.filter((p) =>
       [p.name, p.location, p.address].filter(Boolean).join(' ').toLowerCase().includes(q)
     )
-    : properties;
+    : listings;
 
   return (
     <div className="admin-projects">

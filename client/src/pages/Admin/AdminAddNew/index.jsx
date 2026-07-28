@@ -266,8 +266,8 @@ export default function AdminAddNew() {
     axiosClient.get(ENDPOINTS.GROUPS)
       .then((res) => setGroups(res.data.data))
       .catch(() => {});
-    // Fetch property-field suggestions (names, locations, secondaryNames)
-    axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
+    // Fetch listing-field suggestions (names, locations, secondaryNames)
+    axiosClient.get(ENDPOINTS.LISTING_SUGGESTIONS)
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
       .catch(() => {});
   }, []);
@@ -366,8 +366,8 @@ export default function AdminAddNew() {
     setProjStatus('Saving...');
     try {
       for (const grp of projGroups) {
-        // Create a separate property for each group, now with group_id FK
-        const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
+        // Create a separate listing for each group, now with group_id FK
+        const propRes = await axiosClient.post(ENDPOINTS.LISTINGS, {
           name: grp.name,
           location: grp.location,
           secondary_name: grp.secondaryName,
@@ -388,7 +388,7 @@ export default function AdminAddNew() {
             data.append('title', grp.name);
             // subtitle no longer carries group text — group is tracked via group_id on property
             data.append('type', type);
-            data.append('project_id', property.id);
+            data.append('listing_id', property.id);
             files.forEach((f) => data.append('files', f));
             return axiosClient.post(ENDPOINTS.TEMPLATES, data, { headers: { 'Content-Type': 'multipart/form-data' } });
           })

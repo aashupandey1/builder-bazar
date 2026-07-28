@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 module.exports.listQuerySchema = Joi.object({
   sort: Joi.string().valid('trending', 'latest'),
-  project_id: Joi.number().integer().positive(),
+  listing_id: Joi.number().integer().positive(),
   type: Joi.string().valid('Video', 'Reel', 'Poster', 'Story', 'Banner'),
   featured: Joi.boolean(),
   search: Joi.string().allow(''),
@@ -15,19 +15,19 @@ module.exports.viewParamsSchema = Joi.object({
 });
 
 module.exports.setFeaturedBodySchema = Joi.object({
-  project_id: Joi.number().integer().positive().required(),
+  listing_id: Joi.number().integer().positive().required(),
 });
 
 module.exports.createTemplateSchema = Joi.object({
   title: Joi.string().required(),
   subtitle: Joi.string().allow(''),
   type: Joi.string().valid('Video', 'Reel', 'Poster', 'Story', 'Banner').required(),
-  project_id: Joi.number().integer().positive(),
+  listing_id: Joi.number().integer().positive(),
 });
 
 module.exports.updateTemplateSchema = Joi.object({
   title: Joi.string(),
   subtitle: Joi.string().allow(''),
   type: Joi.string().valid('Video', 'Reel', 'Poster', 'Story', 'Banner'),
-  project_id: Joi.number().integer().positive(),
+  listing_id: Joi.number().integer().positive(),
 }).min(1);
