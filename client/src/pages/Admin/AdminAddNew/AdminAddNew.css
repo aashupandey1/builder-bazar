@@ -221,3 +221,35 @@
     color: #9aa4b2;
     margin: 0;
 }
+
+/* NEW — file ke end me add kar */
+.upload-card__group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px dashed #e5e9f2;
+}
+
+.upload-card__group:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.upload-card__add-group,
+.upload-card__remove-group {
+    border: 1px dashed #2f5fe0;
+    background: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2f5fe0;
+    cursor: pointer;
+}
+
+.upload-card__remove-group {
+    align-self: flex-start;
+    border-color: #e0433f;
+    color: #e0433f;
+}
