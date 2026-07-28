@@ -22,6 +22,8 @@ function VideoPlayer({ src }) {
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
+  const [seekFeedback, setSeekFeedback] = useState(null); // { side: 'left'|'right', key }
+  const lastTapRef = useRef({ time: 0, side: null });
 
   useEffect(() => {
     const video = videoRef.current;
@@ -71,6 +73,22 @@ function VideoPlayer({ src }) {
     setCurrent(v);
   };
 
+  const handleZoneTap = (side) => {
+    const now = Date.now();
+    const isDoubleTap = now - lastTapRef.current.time < 300 && lastTapRef.current.side === side;
+    lastTapRef.current = { time: isDoubleTap ? 0 : now, side };
+    if (!isDoubleTap) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+    const delta = side === 'left' ? -5 : 5;
+    const next = Math.min(Math.max(video.currentTime + delta, 0), video.duration || video.currentTime + delta);
+    video.currentTime = next;
+    setCurrent(next);
+    setSeekFeedback({ side, key: now });
+    setTimeout(() => setSeekFeedback(null), 500);
+  };
+
   const progress = duration ? (current / duration) * 100 : 0;
 
   return (
@@ -85,6 +103,17 @@ function VideoPlayer({ src }) {
         playsInline
         preload="auto"
       />
+
+      <div className="preview__tap-zone preview__tap-zone--left" onClick={() => handleZoneTap('left')}>
+        {seekFeedback?.side === 'left' && (
+          <span key={seekFeedback.key} className="preview__seek-flash">-5s</span>
+        )}
+      </div>
+      <div className="preview__tap-zone preview__tap-zone--right" onClick={() => handleZoneTap('right')}>
+        {seekFeedback?.side === 'right' && (
+          <span key={seekFeedback.key} className="preview__seek-flash">+5s</span>
+        )}
+      </div>
 
       <button className="preview__play-btn" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
         {playing ? <Pause size={22} /> : <Play size={22} />}
