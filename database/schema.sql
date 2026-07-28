@@ -155,3 +155,9 @@ ALTER TABLE favorites ADD COLUMN template_id INTEGER NOT NULL REFERENCES templat
 ALTER TABLE favorites ADD CONSTRAINT unique_favorite UNIQUE (user_id, template_id);
 
 ALTER TABLE users ADD COLUMN mobile VARCHAR(20) UNIQUE;
+
+CREATE TABLE otps (
+  mobile VARCHAR(20) PRIMARY KEY,
+  otp VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP NOT NULL
+);

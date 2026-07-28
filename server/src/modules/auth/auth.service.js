@@ -1,19 +1,26 @@
 const jwt = require('jsonwebtoken');
-const redis = require('../../core/config/redis');
+const db = require('../../core/config/db');
 
-const OTP_TTL_SECONDS = 5 * 60;
+const OTP_TTL_MINUTES = 5;
 
 module.exports.generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 module.exports.saveOtp = async (mobile, otp) => {
-  await redis.set(`otp:${mobile}`, otp, 'EX', OTP_TTL_SECONDS);
+  await db.query(
+    `INSERT INTO otps (mobile, otp, expires_at)
+     VALUES ($1, $2, NOW() + INTERVAL '${OTP_TTL_MINUTES} minutes')
+     ON CONFLICT (mobile) DO UPDATE
+       SET otp = EXCLUDED.otp, expires_at = EXCLUDED.expires_at`,
+    [mobile, otp]
+  );
 };
 
 module.exports.checkOtp = async (mobile, otp) => {
-  const stored = await redis.get(`otp:${mobile}`);
-  if (!stored || stored !== otp) return false;
-  await redis.del(`otp:${mobile}`);
-  return true;
+  const result = await db.query(
+    `DELETE FROM otps WHERE mobile = $1 AND otp = $2 AND expires_at > NOW() RETURNING mobile`,
+    [mobile, otp]
+  );
+  return result.rowCount > 0;
 };
 
 module.exports.signToken = (user) =>
