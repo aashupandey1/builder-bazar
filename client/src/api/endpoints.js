@@ -2,6 +2,8 @@
 export const ENDPOINTS = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
+  SEND_OTP: '/auth/otp/send',
+  VERIFY_OTP: '/auth/otp/verify',
   ME: '/auth/me',
   LOGOUT: '/auth/logout',
   PROJECTS: '/projects',

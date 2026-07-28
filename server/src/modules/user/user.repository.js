@@ -21,3 +21,20 @@ module.exports.upsertGoogleUser = async ({ googleId, email, name, avatarUrl }) =
   );
   return result.rows[0];
 };
+
+module.exports.findByMobile = async (mobile) => {
+  const result = await db.query('SELECT * FROM users WHERE mobile = $1', [mobile]);
+  return result.rows[0] || null;
+};
+
+module.exports.upsertMobileUser = async ({ mobile, email, name }) => {
+  const result = await db.query(
+    `INSERT INTO users (mobile, email, name, provider)
+     VALUES ($1, $2, $3, 'mobile')
+     ON CONFLICT (mobile) DO UPDATE
+       SET name = EXCLUDED.name, email = EXCLUDED.email, updated_at = NOW()
+     RETURNING *`,
+    [mobile, email, name]
+  );
+  return result.rows[0];
+};

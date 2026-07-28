@@ -1,0 +1,145 @@
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f6fa;
+  padding: 24px;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.login__logo {
+  width: 48px;
+  height: 48px;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.login__title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.login__subtitle {
+  text-align: center;
+  color: #64748b;
+  margin: 0 0 24px;
+}
+
+.login__google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.login__google-icon {
+  font-weight: 700;
+  color: #4285f4;
+}
+
+.login__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 12px;
+  margin: 20px 0;
+}
+
+.login__divider::before,
+.login__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.login__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 14px 0 6px;
+}
+
+.login__input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.login__error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+
+.login__submit-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #2b3fdb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.login__submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login__resend-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: #2b3fdb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login__footer-note {
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  margin: 20px 0 6px;
+}
+
+.login__terms {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 11px;
+  margin: 0;
+}
+
+.login__terms a {
+  color: #2b3fdb;
+}

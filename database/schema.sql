@@ -153,3 +153,5 @@ ALTER TABLE favorites DROP CONSTRAINT unique_favorite;
 ALTER TABLE favorites DROP COLUMN project_id;
 ALTER TABLE favorites ADD COLUMN template_id INTEGER NOT NULL REFERENCES templates(id) ON DELETE CASCADE;
 ALTER TABLE favorites ADD CONSTRAINT unique_favorite UNIQUE (user_id, template_id);
+
+ALTER TABLE users ADD COLUMN mobile VARCHAR(20) UNIQUE;

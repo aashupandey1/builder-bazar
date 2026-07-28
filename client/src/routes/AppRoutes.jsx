@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Splash from '../pages/Splash';
+import Login from '../pages/Login';
 import OAuthSuccess from '../pages/OAuthSuccess';
 import Dashboard from '../pages/Dashboard';
 import Projects from '../pages/Projects';
@@ -26,23 +26,28 @@ import ComingSoon from '../pages/Admin/ComingSoon';
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Splash />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route element={<PublicRoutes />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
       <Route path="/oauth-success" element={<OAuthSuccess />} />
-      
+
+      {/* Guest browsing — no login required */}
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/projects" element={<Projects />} />
+      <Route path="/gallery" element={<Gallery />} />
+      <Route path="/preview" element={<Preview />} />
+      <Route path="/share" element={<ShareModal />} />
+      <Route path="/share-success" element={<ShareSuccess />} />
+      <Route path="/download" element={<Downloads />} />
+      <Route path="/notifications" element={<Notifications />} />
+
       {/* Logged-out users get bounced to /login for everything below */}
       <Route element={<PrivateRoutes />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/preview" element={<Preview />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/live-preview" element={<LivePreview />} />
-        <Route path="/download" element={<Downloads />} />
-        <Route path="/share" element={<ShareModal />} />
-        <Route path="/share-success" element={<ShareSuccess />} />
         <Route path="/my-studio" element={<MyStudio />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/notifications" element={<Notifications />} />
         <Route element={<AdminRoutes />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="templates" replace />} />

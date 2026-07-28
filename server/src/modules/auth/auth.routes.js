@@ -16,4 +16,7 @@ router.get(
 router.get('/me', auth, controller.me);
 router.post('/logout', controller.logout);
 
+router.post('/otp/send', controller.sendOtp);
+router.post('/otp/verify', controller.verifyOtp);
+
 module.exports = router;

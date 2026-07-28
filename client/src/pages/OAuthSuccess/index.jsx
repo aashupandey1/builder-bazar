@@ -12,12 +12,13 @@ export default function OAuthSuccess() {
       localStorage.setItem('bb_token', token);
     }
 
-    // URL se token hata do taaki history/address bar me na dikhe
     window.history.replaceState({}, '', '/oauth-success');
 
-    navigate(token ? '/dashboard' : '/login', { replace: true });
-    // reload zaroori hai taaki AuthContext naye token ke saath /me call kare
-    if (token) window.location.href = '/dashboard';
+    const redirectTo = localStorage.getItem('bb_redirect_after_login') || '/dashboard';
+    localStorage.removeItem('bb_redirect_after_login');
+
+    navigate(token ? redirectTo : '/login', { replace: true });
+    if (token) window.location.href = redirectTo;
   }, [navigate]);
 
   return null;
