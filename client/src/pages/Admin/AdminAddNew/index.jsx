@@ -172,17 +172,26 @@ export default function AdminAddNew() {
             <PickerField label="Secondary Name" value={projForm.secondaryName} onChange={(v) => setProjForm({ ...projForm, secondaryName: v })} options={suggestions.secondaryNames} placeholder="Select secondary name" />
             <PickerField label="Location" value={projForm.location} onChange={(v) => setProjForm({ ...projForm, location: v })} options={suggestions.locations} placeholder="Select location" />
             <PickerField label="Category" value={projForm.category} onChange={(v) => setProjForm({ ...projForm, category: v })} options={CATEGORIES} placeholder="Select category" />
+            <PickerField
+              label="Group"
+              value={projGroups[0].group}
+              onChange={(v) => updateGroup(projGroups[0].key, { group: v })}
+              options={suggestions.groups}
+              placeholder="Select or add group"
+            />
           </div>
 
-          {projGroups.map((grp) => (
+          {projGroups.map((grp, gi) => (
             <div key={grp.key} className="upload-card__group">
-              <PickerField
-                label="Group"
-                value={grp.group}
-                onChange={(v) => updateGroup(grp.key, { group: v })}
-                options={suggestions.groups}
-                placeholder="Select or add group"
-              />
+              {gi > 0 && (
+                <PickerField
+                  label="Group"
+                  value={grp.group}
+                  onChange={(v) => updateGroup(grp.key, { group: v })}
+                  options={suggestions.groups}
+                  placeholder="Select or add group"
+                />
+              )}
 
               <p className="upload-card__section-label">Media — For this group</p>
               <label className="upload-card__file">
