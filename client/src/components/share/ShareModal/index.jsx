@@ -51,10 +51,7 @@ export default function ShareModal(props) {
       .finally(() => { if (!cancelled) setPreparing(false); });
     return () => { cancelled = true; };
   }, [fileUrl]);
-  const SHARE_LINKS = {
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-  };
+
 
   // Fetches the actual video/image and hands it to the OS share-sheet
   // (WhatsApp Status, Instagram, etc. then receive the real file, not a link)
@@ -89,15 +86,9 @@ export default function ShareModal(props) {
   const handleOption = async (name, disabled) => {
     if (disabled || sharing) return;
 
-    if (name === "WhatsApp") {
+    if (name === "WhatsApp" || name === "Instagram" || name === "Facebook") {
       const shared = await shareFileNatively(name);
-      if (!shared) window.location.href = SHARE_LINKS.whatsapp; // same tab, no extra page
-    } else if (name === "Instagram") {
-      const shared = await shareFileNatively(name);
-      if (!shared) alert("Instagram sharing needs the Instagram app on your phone — open this on mobile.");
-    } else if (name === "Facebook" || name === "Share to All") {
-      const shared = await shareFileNatively(name);
-      if (!shared) window.open(SHARE_LINKS.facebook, "_blank", "noopener,noreferrer");
+      if (!shared) alert("Sharing isn't supported on this browser — try opening this page on your phone.");
     } else if (name === "Download") {
       fetch(fileUrl)
         .then((res) => res.blob())
