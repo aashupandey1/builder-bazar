@@ -9,14 +9,24 @@ const TEMPLATE_TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
 const CATEGORIES = ['Residential', 'Commercial', 'Villa', 'Plot', 'Other'];
 
 // Search-modal field — tap opens a full search sheet, type to filter, tap a row to pick.
-function PickerField({ label, value, onChange, options, placeholder }) {
+// onAddOption(val): optional callback so parent can persist the new value to suggestions state.
+function PickerField({ label, value, onChange, options, placeholder, onAddOption }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
   const term = search.trim().toLowerCase();
   const filtered = options.filter((o) => o.toLowerCase().includes(term));
+  // Exact match check is case-insensitive so we never show Add for something already in list
   const exactMatch = options.some((o) => o.toLowerCase() === term);
   const pick = (val) => { onChange(val); setOpen(false); };
+
+  const handleAdd = () => {
+    const trimmed = search.trim();
+    if (!trimmed) return;
+    // Tell parent to persist this new value into suggestions (parent handles dedup)
+    if (onAddOption) onAddOption(trimmed);
+    pick(trimmed);
+  };
 
   return (
     <>
@@ -39,7 +49,7 @@ function PickerField({ label, value, onChange, options, placeholder }) {
                 <button type="button" key={o} className="picker-sheet__option" onClick={() => pick(o)}>{o}</button>
               ))}
               {term && !exactMatch && (
-                <button type="button" className="picker-sheet__option picker-sheet__option--add" onClick={() => pick(search.trim())}>
+                <button type="button" className="picker-sheet__option picker-sheet__option--add" onClick={handleAdd}>
                   + Add "{search.trim()}"
                 </button>
               )}
@@ -83,6 +93,19 @@ export default function AdminAddNew() {
   const addGroup = () => setProjGroups((g) => [...g, makeGroup()]);
   const removeGroup = (key) => setProjGroups((g) => g.filter((x) => x.key !== key));
   const updateGroup = (key, patch) => setProjGroups((g) => g.map((x) => (x.key === key ? { ...x, ...patch } : x)));
+
+  // Add a brand-new value to a suggestions list (case-insensitive dedup, trim whitespace).
+  // listKey must be one of: 'groups' | 'names' | 'secondaryNames' | 'locations'
+  const addSuggestion = (listKey, val) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    setSuggestions((prev) => {
+      const list = prev[listKey] ?? [];
+      const alreadyExists = list.some((o) => o.toLowerCase() === trimmed.toLowerCase());
+      if (alreadyExists) return prev; // no duplicate, no re-render
+      return { ...prev, [listKey]: [...list, trimmed] };
+    });
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -207,6 +230,7 @@ export default function AdminAddNew() {
                 onChange={(v) => updateGroup(grp.key, { group: v })}
                 options={suggestions.groups}
                 placeholder="Select or add group"
+                onAddOption={(v) => addSuggestion('groups', v)}
               />
 
               {/* Property fields — 2×2 grid */}
@@ -217,6 +241,7 @@ export default function AdminAddNew() {
                   onChange={(v) => updateGroup(grp.key, { name: v })}
                   options={suggestions.names}
                   placeholder="Select primary name"
+                  onAddOption={(v) => addSuggestion('names', v)}
                 />
                 <PickerField
                   label="Secondary Name"
@@ -224,6 +249,7 @@ export default function AdminAddNew() {
                   onChange={(v) => updateGroup(grp.key, { secondaryName: v })}
                   options={suggestions.secondaryNames}
                   placeholder="Select secondary name"
+                  onAddOption={(v) => addSuggestion('secondaryNames', v)}
                 />
                 <PickerField
                   label="Location"
@@ -231,6 +257,7 @@ export default function AdminAddNew() {
                   onChange={(v) => updateGroup(grp.key, { location: v })}
                   options={suggestions.locations}
                   placeholder="Select location"
+                  onAddOption={(v) => addSuggestion('locations', v)}
                 />
                 <PickerField
                   label="Category"
