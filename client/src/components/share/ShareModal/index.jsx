@@ -59,8 +59,8 @@ export default function ShareModal(props) {
     setSharing(name);
     try {
       // retry fetch here too — file may not have been ready when the modal first mounted
-      const file = preparedFile || (await prepareFile(fileUrl));
-      if (!file) {
+      const rawFile = preparedFile || (await prepareFile(fileUrl));
+      if (!rawFile) {
         console.warn('[ShareModal] prepareFile resolved null — fetch likely failed or fileUrl is empty');
         return false;
       }
@@ -68,6 +68,13 @@ export default function ShareModal(props) {
         console.warn('[ShareModal] navigator.canShare not available (non-HTTPS or unsupported browser)');
         return false;
       }
+      const ext = rawFile.name.split('.').pop() || (rawFile.type.startsWith('video') ? 'mp4' : 'jpg');
+      const safeTitle = (shareText || 'download')
+        .trim()
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'download';
+      const file = new File([rawFile], `${safeTitle}.${ext}`, { type: rawFile.type });
+
       if (!navigator.canShare({ files: [file] })) {
         console.warn('[ShareModal] canShare({ files }) returned false — file MIME:', file.type, 'name:', file.name);
         return false;
