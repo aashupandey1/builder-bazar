@@ -139,6 +139,7 @@ export default function Dashboard() {
 
   const handleSearchKeyDown = (e) => {
     if (e.key !== 'Enter') return;
+    e.target.blur();
     const term = search.trim();
     if (!term) return;
     searchAbortRef.current?.abort();
