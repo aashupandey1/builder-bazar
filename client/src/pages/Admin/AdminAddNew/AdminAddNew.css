@@ -233,6 +233,51 @@
     margin: 0;
 }
 
+/* Suggestion row: label button on left, × delete button on right */
+.picker-sheet__option-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #f1f4f9;
+}
+
+/* When option sits inside a row, let it fill width and lose the self-drawn border */
+.picker-sheet__option--fill {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    border-bottom: none;
+    /* Inherit padding from .picker-sheet__option */
+}
+
+.picker-sheet__option-row:hover .picker-sheet__option--fill {
+    background: #f1f4f9;
+}
+
+/* Touch-friendly delete (×) button */
+.picker-sheet__option-delete {
+    flex: 0 0 auto;
+    /* Minimum 44×44 touch target */
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    font-size: 16px;
+    line-height: 1;
+    color: #c0c8d8;
+    cursor: pointer;
+    padding: 0 12px;
+    transition: color 0.12s ease, background 0.12s ease;
+    border-radius: 0;
+}
+
+.picker-sheet__option-delete:hover {
+    color: #e0433f;
+    background: #fff5f5;
+}
+
+
 /* =====================================================
    PROJECT GROUP CARD — mobile-first
    ===================================================== */

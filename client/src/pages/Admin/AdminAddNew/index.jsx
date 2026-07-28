@@ -9,8 +9,9 @@ const TEMPLATE_TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
 const CATEGORIES = ['Residential', 'Commercial', 'Villa', 'Plot', 'Other'];
 
 // Search-modal field — tap opens a full search sheet, type to filter, tap a row to pick.
-// onAddOption(val): optional callback so parent can persist the new value to suggestions state.
-function PickerField({ label, value, onChange, options, placeholder, onAddOption }) {
+// onAddOption(val):    optional — parent adds new value to suggestions state.
+// onRemoveOption(val): optional — parent removes value from suggestions state.
+function PickerField({ label, value, onChange, options, placeholder, onAddOption, onRemoveOption }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -26,6 +27,13 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
     // Tell parent to persist this new value into suggestions (parent handles dedup)
     if (onAddOption) onAddOption(trimmed);
     pick(trimmed);
+  };
+
+  const handleDelete = (e, val) => {
+    // Stop click from bubbling up to the option row (which would select the value)
+    e.stopPropagation();
+    if (onRemoveOption) onRemoveOption(val);
+    // Dropdown intentionally stays open so user can continue working
   };
 
   return (
@@ -46,7 +54,25 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
             </div>
             <div className="picker-sheet__list">
               {filtered.map((o) => (
-                <button type="button" key={o} className="picker-sheet__option" onClick={() => pick(o)}>{o}</button>
+                <div key={o} className="picker-sheet__option-row">
+                  <button
+                    type="button"
+                    className="picker-sheet__option picker-sheet__option--fill"
+                    onClick={() => pick(o)}
+                  >
+                    {o}
+                  </button>
+                  {onRemoveOption && (
+                    <button
+                      type="button"
+                      className="picker-sheet__option-delete"
+                      onClick={(e) => handleDelete(e, o)}
+                      aria-label={`Remove ${o}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               ))}
               {term && !exactMatch && (
                 <button type="button" className="picker-sheet__option picker-sheet__option--add" onClick={handleAdd}>
@@ -61,6 +87,7 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
     </>
   );
 }
+
 
 const makeGroup = () => ({
   key: Date.now() + Math.random(),
@@ -105,6 +132,17 @@ export default function AdminAddNew() {
       if (alreadyExists) return prev; // no duplicate, no re-render
       return { ...prev, [listKey]: [...list, trimmed] };
     });
+  };
+
+  // Remove a value from a suggestions list.
+  // Selected values in form inputs are NOT cleared — only future suggestions are affected.
+  const removeSuggestion = (listKey, val) => {
+    setSuggestions((prev) => ({
+      ...prev,
+      [listKey]: (prev[listKey] ?? []).filter(
+        (o) => o.toLowerCase() !== val.toLowerCase()
+      ),
+    }));
   };
 
   const handleUpload = async (e) => {
@@ -231,6 +269,7 @@ export default function AdminAddNew() {
                 options={suggestions.groups}
                 placeholder="Select or add group"
                 onAddOption={(v) => addSuggestion('groups', v)}
+                onRemoveOption={(v) => removeSuggestion('groups', v)}
               />
 
               {/* Property fields — 2×2 grid */}
@@ -242,6 +281,7 @@ export default function AdminAddNew() {
                   options={suggestions.names}
                   placeholder="Select primary name"
                   onAddOption={(v) => addSuggestion('names', v)}
+                  onRemoveOption={(v) => removeSuggestion('names', v)}
                 />
                 <PickerField
                   label="Secondary Name"
@@ -250,6 +290,7 @@ export default function AdminAddNew() {
                   options={suggestions.secondaryNames}
                   placeholder="Select secondary name"
                   onAddOption={(v) => addSuggestion('secondaryNames', v)}
+                  onRemoveOption={(v) => removeSuggestion('secondaryNames', v)}
                 />
                 <PickerField
                   label="Location"
@@ -258,6 +299,7 @@ export default function AdminAddNew() {
                   options={suggestions.locations}
                   placeholder="Select location"
                   onAddOption={(v) => addSuggestion('locations', v)}
+                  onRemoveOption={(v) => removeSuggestion('locations', v)}
                 />
                 <PickerField
                   label="Category"
