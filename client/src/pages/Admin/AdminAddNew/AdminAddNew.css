@@ -1,6 +1,8 @@
 .admin-add-new {
     padding: 16px;
     padding-bottom: 32px;
+    /* Prevent horizontal scroll on any child */
+    overflow-x: hidden;
 }
 
 .add-new__option {
@@ -56,10 +58,15 @@
 .upload-card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    /* 24px between every direct child (cards, add-button, submit) */
+    gap: 24px;
     background: #f8f9fc;
     border-radius: 16px;
     padding: 16px;
+    /* Prevent any child from bleeding outside */
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .upload-card input[type='text'],
@@ -71,7 +78,9 @@
     color: #0f1a2b;
     background: #ffffff;
     width: 100%;
+    /* Prevent inputs from blowing out card width */
     box-sizing: border-box;
+    min-width: 0;
 }
 
 .upload-card__file {
@@ -104,18 +113,20 @@
     margin: 0;
 }
 
-.upload-card__section-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #9aa4b2;
-    text-transform: uppercase;
-    margin: 4px 0 0;
-}
+
+
 
 .upload-card__grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+    /* Grid cells must not overflow card */
+    min-width: 0;
+}
+
+/* Grid cells themselves must allow text truncation */
+.upload-card__grid > * {
+    min-width: 0;
 }
 
 .upload-card__field {
@@ -222,34 +233,159 @@
     margin: 0;
 }
 
-/* NEW — file ke end me add kar */
+/* =====================================================
+   PROJECT GROUP CARD — mobile-first
+   ===================================================== */
+
 .upload-card__group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding-top: 6px;
-    border-top: 1px dashed #e5e9f2;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #e5e9f2;
+    border-radius: 14px;
+    /* 16px on mobile */
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(15, 26, 43, 0.06);
+    /* Contain children, stop overflow */
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    min-width: 0;
 }
 
-.upload-card__group:first-child {
-    border-top: none;
-    padding-top: 0;
+/* Card header row */
+.upload-card__group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Prevent header children from wrapping or pushing out */
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
+    /* Pinch of extra space before content begins */
+    padding-bottom: 4px;
+    border-bottom: 1px solid #f1f4f9;
+    margin-bottom: 0;
 }
 
-.upload-card__add-group,
+.upload-card__group-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2f5fe0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+    /* Title shrinks, Remove button stays fixed */
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .upload-card__remove-group {
+    /* Never shrink, never wrap */
+    flex: 0 0 auto;
+    white-space: nowrap;
+    border: 1px solid #fce4e4;
+    background: #fff5f5;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e0433f;
+    cursor: pointer;
+    line-height: 1.5;
+    /* Vertically centered by parent's align-items: center */
+}
+
+/* Media section — top spacing separates it from fields */
+.upload-card__section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9aa4b2;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 4px 0 0;
+}
+
+/* File rows inside each group card */
+.upload-card__file-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.upload-card__file-row span {
+    flex: 1 1 auto;
+    font-size: 12px;
+    color: #0f1a2b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.upload-card__file-row select {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 5px 8px;
+    font-size: 12px;
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f1a2b;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.upload-card__file-row button {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #f1f4f9;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #9aa4b2;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Add-group button — outside cards, 24px top margin via parent gap */
+.upload-card__add-group {
     border: 1px dashed #2f5fe0;
     background: none;
     border-radius: 10px;
-    padding: 10px;
+    padding: 12px;
     font-size: 13px;
     font-weight: 600;
     color: #2f5fe0;
     cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    /* gap on parent already gives 24px above this */
 }
 
-.upload-card__remove-group {
-    align-self: flex-start;
-    border-color: #e0433f;
-    color: #e0433f;
-}
+/* =====================================================
+   RESPONSIVE — tablet and up (600px+)
+   ===================================================== */
+@media (min-width: 600px) {
+    .upload-card__group {
+        /* 20px on tablet+ */
+        padding: 20px;
+    }
+
+    .upload-card__group-title {
+        font-size: 12px;
+    }
+
+    .upload-card__grid {
+        gap: 16px;
+    }
+}

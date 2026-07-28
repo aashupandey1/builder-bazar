@@ -183,8 +183,22 @@ export default function AdminAddNew() {
       </button>
       {open === 'project' && (
         <form className="upload-card" onSubmit={handleCreateProject}>
-          {projGroups.map((grp) => (
+          {projGroups.map((grp, idx) => (
             <div key={grp.key} className="upload-card__group">
+
+              {/* Card header: label on left, remove on right */}
+              <div className="upload-card__group-header">
+                <p className="upload-card__group-title">Project Group {idx + 1}</p>
+                {projGroups.length > 1 && (
+                  <button
+                    type="button"
+                    className="upload-card__remove-group"
+                    onClick={() => removeGroup(grp.key)}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
 
               {/* Group — sits above the 2×2 property grid */}
               <PickerField
@@ -266,15 +280,6 @@ export default function AdminAddNew() {
                 </div>
               ))}
 
-              {projGroups.length > 1 && (
-                <button
-                  type="button"
-                  className="upload-card__remove-group"
-                  onClick={() => removeGroup(grp.key)}
-                >
-                  Remove this group
-                </button>
-              )}
             </div>
           ))}
 
