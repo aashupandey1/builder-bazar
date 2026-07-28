@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../../core/config/db');
 
-const OTP_TTL_MINUTES = 5;
+const OTP_TTL_MINUTES = 15;
 
 module.exports.generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 

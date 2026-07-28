@@ -95,7 +95,16 @@ export default function Login() {
         ) : (
           <form onSubmit={handleVerifyOtp}>
             <label className="login__label">Enter OTP sent to {mobile}</label>
-            <input className="login__input" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" maxLength={6} />
+            <input
+              className="login__input"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder="6-digit code"
+              maxLength={6}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              type="tel"
+            />
 
             {error && <p className="login__error">{error}</p>}
 
