@@ -33,7 +33,10 @@ export default function Login() {
     setError('');
     setSending(true);
     try {
-      await axiosClient.post(ENDPOINTS.SEND_OTP, { mobile });
+      const res = await axiosClient.post(ENDPOINTS.SEND_OTP, { mobile });
+      if (res.data.devOtp) {
+        alert(`Testing OTP: ${res.data.devOtp}`);
+      }
       setStep('otp');
     } catch {
       setError('Could not send OTP, try again.');
