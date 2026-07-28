@@ -5,6 +5,7 @@ module.exports.listQuerySchema = Joi.object({
   project_id: Joi.number().integer().positive(),
   type: Joi.string().valid('Video', 'Reel', 'Poster', 'Story', 'Banner'),
   featured: Joi.boolean(),
+  search: Joi.string().allow(''),
   limit: Joi.number().integer().positive().max(50).default(10),
   offset: Joi.number().integer().min(0).default(0),
 });
