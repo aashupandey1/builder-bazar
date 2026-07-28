@@ -22,9 +22,11 @@ module.exports.findAll = async ({ sort, projectId, type, featured, search, limit
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit, offset);
   const result = await db.query(
-    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location
+    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location,
+            g.name AS group_name, g.logo_url AS group_logo_url
      FROM templates t
      LEFT JOIN properties p ON p.id = t.project_id
+     LEFT JOIN groups g ON g.id = p.group_id
      ${where} ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
@@ -70,6 +72,20 @@ module.exports.create = async ({ type, title, subtitle, fileUrl, thumbnailUrl, c
 
 module.exports.findById = async (id) => {
   const result = await db.query('SELECT * FROM templates WHERE id = $1', [id]);
+  return result.rows[0] || null;
+};
+
+// Richer variant used by preview/share: includes property + group context for OG tags.
+module.exports.findByIdWithContext = async (id) => {
+  const result = await db.query(
+    `SELECT t.*, p.name AS property_name, p.secondary_name AS property_secondary_name, p.location AS property_location,
+            g.name AS group_name, g.logo_url AS group_logo_url
+     FROM templates t
+     LEFT JOIN properties p ON p.id = t.project_id
+     LEFT JOIN groups g ON g.id = p.group_id
+     WHERE t.id = $1`,
+    [id]
+  );
   return result.rows[0] || null;
 };
 

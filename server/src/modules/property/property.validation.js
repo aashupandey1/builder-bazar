@@ -10,6 +10,7 @@ module.exports.createPropertySchema = Joi.object({
   address: Joi.string().allow(''),
   secondary_name: Joi.string().allow(''),
   category: Joi.string().allow(''),
+  group_id: Joi.number().integer().positive().allow(null), // nullable FK to groups.id
 });
 
 module.exports.updatePropertySchema = Joi.object({
@@ -18,4 +19,5 @@ module.exports.updatePropertySchema = Joi.object({
   address: Joi.string().allow(''),
   secondary_name: Joi.string().allow(''),
   category: Joi.string().allow(''),
+  group_id: Joi.number().integer().positive().allow(null),
 }).min(1);

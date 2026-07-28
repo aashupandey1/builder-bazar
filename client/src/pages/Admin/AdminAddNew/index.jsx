@@ -89,9 +89,105 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
 }
 
 
+
+// Group/Builder entity picker — fetches real groups from API (id + logo_url + name).
+// "+Add" immediately POSTs to /api/v1/groups and resolves the new group's id inline.
+// Props:
+//   groups        — array of { id, name, logo_url } from GET /api/v1/groups
+//   selectedId    — currently selected group id (or null)
+//   selectedName  — display name of selected group
+//   onSelect(id, name, logoUrl) — called when user picks an existing group
+//   onCreateGroup(name) → Promise<{ id, name, logo_url }> — called on "+ Add"
+function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, onCreateGroup, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  const term = search.trim().toLowerCase();
+  const filtered = groups.filter((g) => g.name.toLowerCase().includes(term));
+  const exactMatch = groups.some((g) => g.name.toLowerCase() === term);
+
+  const pick = (g) => { onSelect(g.id, g.name, g.logo_url); setOpen(false); };
+
+  const handleAdd = async () => {
+    const trimmed = search.trim();
+    if (!trimmed || creating) return;
+    setCreating(true);
+    setCreateError('');
+    try {
+      const newGroup = await onCreateGroup(trimmed);
+      pick(newGroup);
+    } catch (err) {
+      setCreateError(err.response?.data?.message || 'Create failed');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const displayLabel = selectedId ? selectedName : null;
+
+  return (
+    <>
+      <label className="upload-card__field">
+        <span>{label}</span>
+        <button type="button" className="upload-card__picker" onClick={() => { setSearch(''); setCreateError(''); setOpen(true); }}>
+          <span className={displayLabel ? '' : 'upload-card__picker-placeholder'}>{displayLabel || placeholder}</span>
+          <ChevronDown size={16} />
+        </button>
+      </label>
+      {open && (
+        <div className="picker-overlay" onClick={() => setOpen(false)}>
+          <div className="picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="picker-sheet__search">
+              <Search size={16} />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search or type new builder name..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setCreateError(''); }}
+              />
+            </div>
+            <div className="picker-sheet__list">
+              {filtered.map((g) => (
+                <div key={g.id} className="picker-sheet__option-row">
+                  <button
+                    type="button"
+                    className="picker-sheet__option picker-sheet__option--fill"
+                    onClick={() => pick(g)}
+                  >
+                    {g.logo_url && <img src={g.logo_url} alt="" className="picker-sheet__group-logo" />}
+                    {g.name}
+                  </button>
+                </div>
+              ))}
+              {term && !exactMatch && (
+                <button
+                  type="button"
+                  className="picker-sheet__option picker-sheet__option--add"
+                  onClick={handleAdd}
+                  disabled={creating}
+                >
+                  {creating ? 'Creating...' : `+ Add "${search.trim()}"`}
+                </button>
+              )}
+              {createError && <p className="picker-sheet__empty" style={{ color: '#e0433f' }}>{createError}</p>}
+              {!filtered.length && !term && (
+                <p className="picker-sheet__empty">No builders yet. Type a name to create one.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 const makeGroup = () => ({
   key: Date.now() + Math.random(),
-  group: '',
+  groupId: null,    // integer FK to groups.id — replaces old free-text 'group' field
+  groupName: '',    // display only, not sent to API
   name: '',
   secondaryName: '',
   location: '',
@@ -108,12 +204,18 @@ export default function AdminAddNew() {
 
   const [projGroups, setProjGroups] = useState([makeGroup()]);
   const [projStatus, setProjStatus] = useState('');
-  const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [], groups: [] });
+  const [groups, setGroups] = useState([]); // Builder/Group entities from API
+  const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [] });
 
   useEffect(() => {
+    // Fetch real group entities (id + name + logo_url) for GroupPickerField
+    axiosClient.get(ENDPOINTS.GROUPS)
+      .then((res) => setGroups(res.data.data))
+      .catch(() => {});
+    // Fetch property-field suggestions (names, locations, secondaryNames)
     axiosClient.get(ENDPOINTS.PROPERTY_SUGGESTIONS)
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
@@ -122,7 +224,7 @@ export default function AdminAddNew() {
   const updateGroup = (key, patch) => setProjGroups((g) => g.map((x) => (x.key === key ? { ...x, ...patch } : x)));
 
   // Add a brand-new value to a suggestions list (case-insensitive dedup, trim whitespace).
-  // listKey must be one of: 'groups' | 'names' | 'secondaryNames' | 'locations'
+  // listKey must be one of: 'names' | 'secondaryNames' | 'locations'
   const addSuggestion = (listKey, val) => {
     const trimmed = val.trim();
     if (!trimmed) return;
@@ -143,6 +245,15 @@ export default function AdminAddNew() {
         (o) => o.toLowerCase() !== val.toLowerCase()
       ),
     }));
+  };
+
+  // Create a brand-new Builder/Group via API, add it to local groups list, return it.
+  // Called by GroupPickerField when user clicks "+ Add [name]".
+  const createGroup = async (name) => {
+    const res = await axiosClient.post(ENDPOINTS.GROUPS, { name });
+    const newGroup = res.data.data;
+    setGroups((prev) => [...prev, newGroup].sort((a, b) => a.name.localeCompare(b.name)));
+    return newGroup;
   };
 
   const handleUpload = async (e) => {
@@ -168,6 +279,10 @@ export default function AdminAddNew() {
   const handleCreateProject = async (e) => {
     e.preventDefault();
 
+    // Every group must have a Builder/Group selected (entity id, not free text)
+    const missingGroup = projGroups.find((g) => !g.groupId);
+    if (missingGroup) return setProjStatus('Har group mein Builder/Group select karna zaroori hai');
+
     // Every group must have a Primary Name
     const missingName = projGroups.find((g) => !g.name.trim());
     if (missingName) return setProjStatus('Har group mein Primary Name zaroori hai');
@@ -179,12 +294,13 @@ export default function AdminAddNew() {
     setProjStatus('Saving...');
     try {
       for (const grp of projGroups) {
-        // Create a separate property for each group
+        // Create a separate property for each group, now with group_id FK
         const propRes = await axiosClient.post(ENDPOINTS.PROPERTIES, {
           name: grp.name,
           location: grp.location,
           secondary_name: grp.secondaryName,
           category: grp.category,
+          group_id: grp.groupId,  // ← entity id, replaces old subtitle text
         });
         const property = propRes.data.data;
 
@@ -198,7 +314,7 @@ export default function AdminAddNew() {
           Object.entries(byType).map(([type, files]) => {
             const data = new FormData();
             data.append('title', grp.name);
-            data.append('subtitle', grp.group);
+            // subtitle no longer carries group text — group is tracked via group_id on property
             data.append('type', type);
             data.append('project_id', property.id);
             files.forEach((f) => data.append('files', f));
@@ -261,15 +377,15 @@ export default function AdminAddNew() {
                 )}
               </div>
 
-              {/* Group — sits above the 2×2 property grid */}
-              <PickerField
-                label="Group"
-                value={grp.group}
-                onChange={(v) => updateGroup(grp.key, { group: v })}
-                options={suggestions.groups}
-                placeholder="Select or add group"
-                onAddOption={(v) => addSuggestion('groups', v)}
-                onRemoveOption={(v) => removeSuggestion('groups', v)}
+              {/* Builder / Group — entity picker (id + optional logo), above property grid */}
+              <GroupPickerField
+                label="Builder / Group"
+                groups={groups}
+                selectedId={grp.groupId}
+                selectedName={grp.groupName}
+                placeholder="Select or create a builder"
+                onSelect={(id, name) => updateGroup(grp.key, { groupId: id, groupName: name })}
+                onCreateGroup={createGroup}
               />
 
               {/* Property fields — 2×2 grid */}

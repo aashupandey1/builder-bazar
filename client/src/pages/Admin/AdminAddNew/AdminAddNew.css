@@ -277,6 +277,17 @@
     background: #fff5f5;
 }
 
+/* Group logo thumbnail inside the picker list */
+.picker-sheet__group-logo {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
 
 /* =====================================================
    PROJECT GROUP CARD — mobile-first

@@ -10,6 +10,8 @@ export const ENDPOINTS = {
   FAVORITES: '/favorites',
   PROPERTIES: '/properties',
   PROPERTY_SUGGESTIONS: '/properties/suggestions',
+  GROUPS: '/groups',
+  GROUP_SUGGESTIONS: '/groups/suggestions',
   PROFILE: '/profile',
   BRANDING: '/branding',
   NOTIFICATIONS: '/notifications',

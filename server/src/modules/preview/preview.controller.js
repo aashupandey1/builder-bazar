@@ -5,7 +5,9 @@ module.exports.share = async (req, res, next) => {
     const { type, id } = req.params;
     let item = null;
     if (type === 'template') {
-      item = await templateRepository.findById(id);
+      // audit §14: use findByIdWithContext (JOINs properties + groups) so OG description
+      // prefers group_name > property_name > subtitle fallback chain — not subtitle alone.
+      item = await templateRepository.findByIdWithContext(id);
     }
     if (!item) return res.status(404).send('Content not found');
 
@@ -13,7 +15,8 @@ module.exports.share = async (req, res, next) => {
     const clientUrl = process.env.CLIENT_URL;
     const shareUrl = `${process.env.SERVER_BASE_URL}/share/${type}/${id}`;
     const title = item.title || 'Builder Bazar Marketing Studio';
-    const description = item.subtitle || 'Check out this template';
+    // Prefer group_name then property_name then subtitle, then generic fallback.
+    const description = item.group_name || item.property_name || item.subtitle || 'Check out this template';
     const image = item.thumbnail_url || (!isVideo ? item.file_url : '');
 
     res.send(`<!DOCTYPE html>
