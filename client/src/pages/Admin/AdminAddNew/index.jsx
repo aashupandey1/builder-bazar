@@ -97,10 +97,12 @@ function PickerField({ label, value, onChange, options, placeholder, onAddOption
 //   selectedId    — currently selected group id (or null)
 //   selectedName  — display name of selected group
 //   onSelect(id, name, logoUrl) — called when user picks an existing group
-//   onCreateGroup(name) → Promise<{ id, name, logo_url }> — called on "+ Add"
+//   onCreateGroup(name, logoFile) → Promise<{ id, name, logo_url }> — called on "+ Add"
 function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, onCreateGroup, placeholder }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
@@ -110,14 +112,34 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
 
   const pick = (g) => { onSelect(g.id, g.name, g.logo_url); setOpen(false); };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0] || null;
+    setLogoFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setLogoPreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setLogoPreview(null);
+    }
+  };
+
+  const resetCreateState = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setSearch('');
+    setCreateError('');
+  };
+
   const handleAdd = async () => {
     const trimmed = search.trim();
     if (!trimmed || creating) return;
     setCreating(true);
     setCreateError('');
     try {
-      const newGroup = await onCreateGroup(trimmed);
+      const newGroup = await onCreateGroup(trimmed, logoFile);
       pick(newGroup);
+      resetCreateState();
     } catch (err) {
       setCreateError(err.response?.data?.message || 'Create failed');
     } finally {
@@ -131,7 +153,7 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
     <>
       <label className="upload-card__field">
         <span>{label}</span>
-        <button type="button" className="upload-card__picker" onClick={() => { setSearch(''); setCreateError(''); setOpen(true); }}>
+        <button type="button" className="upload-card__picker" onClick={() => { resetCreateState(); setOpen(true); }}>
           <span className={displayLabel ? '' : 'upload-card__picker-placeholder'}>{displayLabel || placeholder}</span>
           <ChevronDown size={16} />
         </button>
@@ -162,16 +184,32 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
                   </button>
                 </div>
               ))}
+
               {term && !exactMatch && (
-                <button
-                  type="button"
-                  className="picker-sheet__option picker-sheet__option--add"
-                  onClick={handleAdd}
-                  disabled={creating}
-                >
-                  {creating ? 'Creating...' : `+ Add "${search.trim()}"`}
-                </button>
+                <div className="picker-sheet__add-section" style={{ padding: '14px', borderBottom: '1px solid #f1f4f9' }}>
+                  <label className="upload-card__file" style={{ margin: '0 0 10px 0', padding: '10px', fontSize: '13px' }}>
+                    <UploadCloud size={16} />
+                    <span>{logoFile ? logoFile.name : 'Upload logo (optional)'}</span>
+                    <input type="file" accept="image/*" hidden onChange={handleLogoChange} />
+                  </label>
+                  {logoPreview && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <img src={logoPreview} alt="Preview" style={{ width: '32px', height: '32px', borderRadius: '4px', objectFit: 'cover' }} />
+                      <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(null); }} style={{ border: 'none', background: 'none', color: '#e0433f', fontSize: '12px', cursor: 'pointer' }}>Remove Logo</button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="picker-sheet__option picker-sheet__option--add"
+                    onClick={handleAdd}
+                    disabled={creating}
+                    style={{ padding: '10px 0', width: '100%', borderBottom: 'none' }}
+                  >
+                    {creating ? 'Creating...' : `+ Add "${search.trim()}"`}
+                  </button>
+                </div>
               )}
+
               {createError && <p className="picker-sheet__empty" style={{ color: '#e0433f' }}>{createError}</p>}
               {!filtered.length && !term && (
                 <p className="picker-sheet__empty">No builders yet. Type a name to create one.</p>
@@ -249,12 +287,19 @@ export default function AdminAddNew() {
 
   // Create a brand-new Builder/Group via API, add it to local groups list, return it.
   // Called by GroupPickerField when user clicks "+ Add [name]".
-  const createGroup = async (name) => {
-    const res = await axiosClient.post(ENDPOINTS.GROUPS, { name });
+  const createGroup = async (name, logoFile) => {
+    const formData = new FormData();
+    formData.append('name', name);
+    if (logoFile) formData.append('logo', logoFile);
+
+    const res = await axiosClient.post(ENDPOINTS.GROUPS, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     const newGroup = res.data.data;
     setGroups((prev) => [...prev, newGroup].sort((a, b) => a.name.localeCompare(b.name)));
     return newGroup;
   };
+
 
   const handleUpload = async (e) => {
     e.preventDefault();
