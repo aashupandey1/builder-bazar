@@ -6,7 +6,6 @@ import SearchBar from '../../components/common/SearchBar';
 import BottomNav from '../../components/layout/BottomNav';
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
-import { useHlsVideo } from '../../hooks/useHlsVideo';
 import {
   FolderIcon,
   PlayIcon,
@@ -44,7 +43,6 @@ export default function Dashboard() {
   const [heroLoading, setHeroLoading] = useState(true);
   const [heroMuted, setHeroMuted] = useState(true);
   const heroVideoRef = useRef(null);
-  useHlsVideo(heroVideoRef, hero?.file_url);
 
   const loadTrending = (currentOffset, replace = false) => {
     if (replace) setTrendingLoading(true); else setMoreLoading(true);
@@ -219,6 +217,7 @@ export default function Dashboard() {
         ) : hero && isVideoTag(hero.type) ? (
           <video
             className="dashboard__hero-video"
+            src={hero.file_url}
             autoPlay loop playsInline
             preload="auto"
             muted={heroMuted}

@@ -4,7 +4,6 @@ import { Play, Pause, Volume2, VolumeX, Download, Heart, ArrowLeft } from 'lucid
 import axiosClient from '../../api/axiosClient';
 import { ENDPOINTS } from '../../api/endpoints';
 import { prepareFile } from '../../utils/preparedFileCache';
-import { useHlsVideo } from '../../hooks/useHlsVideo';
 import './Preview.css';
 
 
@@ -18,7 +17,6 @@ const formatTime = (secs) => {
 
 function VideoPlayer({ src }) {
   const videoRef = useRef(null);
-  useHlsVideo(videoRef, src);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(true);
   const [current, setCurrent] = useState(0);
@@ -77,7 +75,16 @@ function VideoPlayer({ src }) {
 
   return (
     <>
-      <video ref={videoRef} className="preview__video" src={src} autoPlay loop muted={muted} playsInline preload="auto" />
+      <video
+        ref={videoRef}
+        className="preview__video"
+        src={src}
+        autoPlay
+        loop
+        muted={muted}
+        playsInline
+        preload="auto"
+      />
 
       <button className="preview__play-btn" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
         {playing ? <Pause size={22} /> : <Play size={22} />}
