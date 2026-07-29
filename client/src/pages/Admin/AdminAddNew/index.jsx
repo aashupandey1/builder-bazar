@@ -260,6 +260,7 @@ export default function AdminAddNew() {
   const [projStatus, setProjStatus] = useState('');
   const [groups, setGroups] = useState([]); // Builder/Group entities from API
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [] });
+  const [categories, setCategories] = useState(CATEGORIES);
 
   useEffect(() => {
     // Fetch real group entities (id + name + logo_url) for GroupPickerField
@@ -495,8 +496,20 @@ export default function AdminAddNew() {
                   label="Category"
                   value={grp.category}
                   onChange={(v) => updateGroup(grp.key, { category: v })}
-                  options={CATEGORIES}
+                  options={categories}
                   placeholder="Select category"
+                  onAddOption={(v) => {
+                    const trimmed = v.trim();
+                    if (!trimmed) return;
+                    setCategories((prev) => {
+                      const alreadyExists = prev.some((o) => o.toLowerCase() === trimmed.toLowerCase());
+                      if (alreadyExists) return prev;
+                      return [...prev, trimmed];
+                    });
+                  }}
+                  onRemoveOption={(v) => {
+                    setCategories((prev) => prev.filter((o) => o.toLowerCase() !== v.toLowerCase()));
+                  }}
                 />
               </div>
 
