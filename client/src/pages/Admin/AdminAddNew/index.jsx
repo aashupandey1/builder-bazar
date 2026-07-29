@@ -6,7 +6,6 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import './AdminAddNew.css';
 
 const TEMPLATE_TYPES = ['Video', 'Reel', 'Poster', 'Story', 'Banner'];
-const CATEGORIES = ['Residential', 'Commercial', 'Villa', 'Plot', 'Other'];
 
 // Search-modal field — tap opens a full search sheet, type to filter, tap a row to pick.
 // onAddOption(val):    optional — parent adds new value to suggestions state.
@@ -262,7 +261,7 @@ export default function AdminAddNew() {
   const [projStatus, setProjStatus] = useState('');
   const [groups, setGroups] = useState([]); // Builder/Group entities from API
   const [suggestions, setSuggestions] = useState({ names: [], locations: [], secondaryNames: [] });
-  const [categories, setCategories] = useState(CATEGORIES);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     // Fetch real group entities (id + name + logo_url) for GroupPickerField
@@ -273,6 +272,10 @@ export default function AdminAddNew() {
     axiosClient.get(ENDPOINTS.LISTING_SUGGESTIONS)
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
       .catch(() => { });
+    // Fetch categories from backend
+    axiosClient.get(ENDPOINTS.CATEGORIES)
+      .then((res) => setCategories(res.data.data))
+      .catch(() => { });
   }, []);
 
   const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
@@ -282,9 +285,12 @@ export default function AdminAddNew() {
 
   // Add a brand-new value to a suggestions list (case-insensitive dedup, trim whitespace).
   // listKey must be one of: 'names' | 'secondaryNames' | 'locations'
-  const addSuggestion = (listKey, val) => {
+  const addSuggestion = async (listKey, val) => {
     const trimmed = val.trim();
     if (!trimmed) return;
+    try {
+      await axiosClient.post(ENDPOINTS.LISTING_SUGGESTIONS, { type: listKey, value: trimmed });
+    } catch (err) { }
     setSuggestions((prev) => {
       const list = prev[listKey] ?? [];
       const alreadyExists = list.some((o) => o.toLowerCase() === trimmed.toLowerCase());
@@ -293,15 +299,41 @@ export default function AdminAddNew() {
     });
   };
 
-  // Remove a value from a suggestions list.
-  // Selected values in form inputs are NOT cleared — only future suggestions are affected.
-  const removeSuggestion = (listKey, val) => {
+  // Remove a value from a suggestions list via API.
+  const removeSuggestion = async (listKey, val) => {
+    try {
+      await axiosClient.delete(ENDPOINTS.LISTING_SUGGESTIONS, {
+        params: { type: listKey, value: val },
+      });
+    } catch (err) { }
     setSuggestions((prev) => ({
       ...prev,
       [listKey]: (prev[listKey] ?? []).filter(
         (o) => o.toLowerCase() !== val.toLowerCase()
       ),
     }));
+  };
+
+  const addCategory = async (val) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    try {
+      const res = await axiosClient.post(ENDPOINTS.CATEGORIES, { name: trimmed });
+      const newCat = res.data.data;
+      setCategories((prev) => {
+        const exists = prev.some((c) => c.name.toLowerCase() === trimmed.toLowerCase());
+        if (exists) return prev;
+        return [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name));
+      });
+    } catch (err) { }
+  };
+
+  const deleteCategory = async (val) => {
+    const cat = categories.find((c) => c.name.toLowerCase() === val.toLowerCase());
+    try {
+      await axiosClient.delete(`${ENDPOINTS.CATEGORIES}/${cat ? cat.id : val}`);
+    } catch (err) { }
+    setCategories((prev) => prev.filter((c) => c.name.toLowerCase() !== val.toLowerCase()));
   };
 
   // Create a brand-new Builder/Group via API, add it to local groups list, return it.
@@ -512,20 +544,10 @@ export default function AdminAddNew() {
                   label="Category"
                   value={grp.category}
                   onChange={(v) => updateGroup(grp.key, { category: v })}
-                  options={categories}
+                  options={categories.map((c) => (typeof c === 'string' ? c : c.name))}
                   placeholder="Select category"
-                  onAddOption={(v) => {
-                    const trimmed = v.trim();
-                    if (!trimmed) return;
-                    setCategories((prev) => {
-                      const alreadyExists = prev.some((o) => o.toLowerCase() === trimmed.toLowerCase());
-                      if (alreadyExists) return prev;
-                      return [...prev, trimmed];
-                    });
-                  }}
-                  onRemoveOption={(v) => {
-                    setCategories((prev) => prev.filter((o) => o.toLowerCase() !== v.toLowerCase()));
-                  }}
+                  onAddOption={addCategory}
+                  onRemoveOption={deleteCategory}
                 />
               </div>
 

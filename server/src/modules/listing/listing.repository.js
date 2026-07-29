@@ -67,11 +67,29 @@ module.exports.create = async ({ name, location, address, secondary_name, catego
   return result.rows[0];
 };
 
+const initDeletedSuggestionsTable = async () => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS deleted_suggestions (
+        id SERIAL PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        value VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT unique_deleted_suggestion UNIQUE (type, value)
+      );
+    `);
+  } catch (err) {
+    console.error('Failed to initialize deleted_suggestions table:', err);
+  }
+};
+
+initDeletedSuggestionsTable();
+
 module.exports.findSuggestions = async () => {
   const [names, locations, secondaryNames, groups] = await Promise.all([
-    db.query(`SELECT DISTINCT name FROM listings WHERE name IS NOT NULL AND name <> '' ORDER BY name`),
-    db.query(`SELECT DISTINCT location FROM listings WHERE location IS NOT NULL AND location <> '' ORDER BY location`),
-    db.query(`SELECT DISTINCT secondary_name FROM listings WHERE secondary_name IS NOT NULL AND secondary_name <> '' ORDER BY secondary_name`),
+    db.query(`SELECT DISTINCT name FROM listings WHERE name IS NOT NULL AND name <> '' AND LOWER(name) NOT IN (SELECT LOWER(value) FROM deleted_suggestions WHERE type = 'names') ORDER BY name`),
+    db.query(`SELECT DISTINCT location FROM listings WHERE location IS NOT NULL AND location <> '' AND LOWER(location) NOT IN (SELECT LOWER(value) FROM deleted_suggestions WHERE type = 'locations') ORDER BY location`),
+    db.query(`SELECT DISTINCT secondary_name FROM listings WHERE secondary_name IS NOT NULL AND secondary_name <> '' AND LOWER(secondary_name) NOT IN (SELECT LOWER(value) FROM deleted_suggestions WHERE type = 'secondaryNames') ORDER BY secondary_name`),
     db.query(`SELECT name FROM groups WHERE name IS NOT NULL ORDER BY name`),
   ]);
   return {
@@ -80,6 +98,22 @@ module.exports.findSuggestions = async () => {
     secondaryNames: secondaryNames.rows.map((r) => r.secondary_name),
     groups: groups.rows.map((r) => r.name),
   };
+};
+
+module.exports.addDeletedSuggestion = async (type, value) => {
+  const result = await db.query(
+    `INSERT INTO deleted_suggestions (type, value) VALUES ($1, $2) ON CONFLICT (type, value) DO NOTHING RETURNING *`,
+    [type, value]
+  );
+  return result.rows[0] || null;
+};
+
+module.exports.removeDeletedSuggestion = async (type, value) => {
+  const result = await db.query(
+    `DELETE FROM deleted_suggestions WHERE type = $1 AND LOWER(value) = LOWER($2) RETURNING *`,
+    [type, value]
+  );
+  return result.rows[0] || null;
 };
 
 module.exports.update = async (id, fields) => {

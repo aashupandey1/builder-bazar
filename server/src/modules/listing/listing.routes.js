@@ -7,6 +7,8 @@ const { idParamsSchema, createListingSchema, updateListingSchema } = require('./
 const router = express.Router();
 router.get('/', controller.list);
 router.get('/suggestions', controller.suggestions);
+router.delete('/suggestions', requireAdmin, controller.removeSuggestion);
+router.post('/suggestions', requireAdmin, controller.addSuggestion);
 router.post('/', requireAdmin, validate(createListingSchema), controller.create);
 router.put('/:id', requireAdmin, validate(idParamsSchema, 'params'), validate(updateListingSchema), controller.update);
 router.delete('/:id', requireAdmin, validate(idParamsSchema, 'params'), controller.remove);

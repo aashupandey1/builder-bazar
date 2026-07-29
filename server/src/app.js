@@ -21,6 +21,7 @@ app.use('/api/v1/templates', require('./modules/template/template.routes'));
 app.use('/share', require('./modules/preview/preview.routes'));
 app.use('/api/v1/listings', auth, require('./modules/listing/listing.routes'));
 app.use('/api/v1/groups', auth, require('./modules/group/group.routes'));
+app.use('/api/v1/categories', auth, require('./modules/category/category.routes'));
 app.use('/api/v1/media', auth, require('./modules/media/media.routes'));
 app.use('/api/v1/upload', auth, rateLimiter, require('./modules/upload/upload.routes'));
 app.use('/api/v1/projects', auth, require('./modules/project/project.routes'));

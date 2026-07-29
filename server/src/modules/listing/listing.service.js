@@ -5,6 +5,8 @@ const path = require('path');
 
 module.exports.list = (filters) => repository.findAll(filters);
 module.exports.suggestions = () => repository.findSuggestions();
+module.exports.removeSuggestion = (type, value) => repository.addDeletedSuggestion(type, value);
+module.exports.addSuggestion = (type, value) => repository.removeDeletedSuggestion(type, value);
 module.exports.create = (data) => repository.create(data);
 
 module.exports.update = (id, fields) => repository.update(id, fields);

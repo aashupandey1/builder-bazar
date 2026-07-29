@@ -19,4 +19,5 @@ export const ENDPOINTS = {
   MEDIA: '/media',
   TEMPLATES: '/templates',
   UPLOAD: '/upload',
+  CATEGORIES: '/categories',
 };
