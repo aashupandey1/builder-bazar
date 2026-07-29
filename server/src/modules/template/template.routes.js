@@ -23,7 +23,7 @@ router.patch(
   validate(setFeaturedBodySchema, 'body'),
   controller.setFeatured
 );
-router.post('/', auth, requireAdmin, upload.array('files', 10), validate(createTemplateSchema), controller.create);
+router.post('/', auth, requireAdmin, upload.array('files', 30), validate(createTemplateSchema), controller.create);
 router.put('/:id', auth, requireAdmin, validate(viewParamsSchema, 'params'), validate(updateTemplateSchema), controller.update);
 router.delete('/:id', auth, requireAdmin, validate(viewParamsSchema, 'params'), controller.remove);
 
