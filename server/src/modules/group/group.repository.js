@@ -41,6 +41,17 @@ module.exports.update = async (id, fields) => {
 };
 
 module.exports.remove = async (id) => {
-  const result = await db.query('DELETE FROM groups WHERE id = $1 RETURNING *', [id]);
-  return result.rows[0] || null;
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('UPDATE listings SET group_id = NULL WHERE group_id = $1', [id]);
+    const result = await client.query('DELETE FROM groups WHERE id = $1 RETURNING *', [id]);
+    await client.query('COMMIT');
+    return result.rows[0] || null;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 };
