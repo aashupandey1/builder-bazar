@@ -247,6 +247,8 @@ const makeGroup = () => ({
   location: '',
   category: '',
   files: [],
+  status: 'idle',   // 'idle' | 'uploading' | 'done' | 'failed'
+  statusMessage: '',
 });
 
 export default function AdminAddNew() {
@@ -365,8 +367,10 @@ export default function AdminAddNew() {
     if (missingFiles) return setProjStatus('At least 1 media file is required for every entry');
 
     setProjStatus('Saving...');
-    try {
-      for (const grp of projGroups) {
+    let anyFailed = false;
+    for (const grp of projGroups) {
+      updateGroup(grp.key, { status: 'uploading', statusMessage: '' });
+      try {
         // Create a separate listing for each group, now with group_id FK
         const propRes = await axiosClient.post(ENDPOINTS.LISTINGS, {
           name: grp.name,
@@ -394,13 +398,19 @@ export default function AdminAddNew() {
             return axiosClient.post(ENDPOINTS.TEMPLATES, data, { headers: { 'Content-Type': 'multipart/form-data' } });
           })
         );
+        updateGroup(grp.key, { status: 'done' });
+      } catch (err) {
+        anyFailed = true;
+        updateGroup(grp.key, { status: 'failed', statusMessage: err.response?.data?.message || 'Upload failed' });
       }
+    }
 
+    if (!anyFailed) {
       setProjStatus('Project created!');
       setProjGroups([makeGroup()]);
       navigate('/admin/projects');
-    } catch (err) {
-      setProjStatus(err.response?.data?.message || 'Save failed');
+    } else {
+      setProjStatus('Some groups failed to upload — see badges above.');
     }
   };
 
@@ -436,18 +446,23 @@ export default function AdminAddNew() {
           {projGroups.map((grp, idx) => (
             <div key={grp.key} className="upload-card__group">
 
-              {/* Card header: label on left, remove on right */}
+              {/* Card header: label on left, status badge + remove on right */}
               <div className="upload-card__group-header">
                 <p className="upload-card__group-title">Project Group {idx + 1}</p>
-                {projGroups.length > 1 && (
-                  <button
-                    type="button"
-                    className="upload-card__remove-group"
-                    onClick={() => removeGroup(grp.key)}
-                  >
-                    Remove
-                  </button>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {grp.status === 'uploading' && <span style={{ fontSize: 12, color: '#9aa4b2' }}>⏳ Uploading...</span>}
+                  {grp.status === 'done' && <span style={{ fontSize: 12, color: '#16a34a' }}>✅ Done</span>}
+                  {grp.status === 'failed' && <span style={{ fontSize: 12, color: '#e0433f' }}>❌ Failed — {grp.statusMessage}</span>}
+                  {projGroups.length > 1 && (
+                    <button
+                      type="button"
+                      className="upload-card__remove-group"
+                      onClick={() => removeGroup(grp.key)}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Builder / Group — entity picker (id + optional logo), above property grid */}
