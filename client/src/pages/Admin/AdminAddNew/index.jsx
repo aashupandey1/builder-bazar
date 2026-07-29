@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, Folder, ChevronDown, Search } from 'lucide-react';
 import axiosClient from '../../../api/axiosClient';
@@ -105,6 +105,8 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
   const [logoPreview, setLogoPreview] = useState(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+  const deletingRef = useRef(null);
 
   const term = search.trim().toLowerCase();
   const filtered = groups.filter((g) => g.name.toLowerCase().includes(term));
@@ -147,9 +149,19 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
     }
   };
 
-  const handleDelete = (e, id) => {
+  const handleDelete = async (e, id) => {
     e.stopPropagation();
-    if (onRemoveGroup) onRemoveGroup(id);
+    if (!onRemoveGroup || deletingRef.current === id) return;
+    deletingRef.current = id;
+    setDeletingId(id);
+    try {
+      await onRemoveGroup(id);
+    } catch (err) {
+      // Handled upstream in deleteGroup
+    } finally {
+      deletingRef.current = null;
+      setDeletingId(null);
+    }
   };
 
   const displayLabel = selectedId ? selectedName : null;
@@ -192,9 +204,10 @@ function GroupPickerField({ label, groups, selectedId, selectedName, onSelect, o
                       type="button"
                       className="picker-sheet__option-delete"
                       onClick={(e) => handleDelete(e, g.id)}
+                      disabled={deletingId === g.id}
                       aria-label={`Remove ${g.name}`}
                     >
-                      ×
+                      {deletingId === g.id ? '…' : '×'}
                     </button>
                   )}
                 </div>
@@ -352,7 +365,13 @@ export default function AdminAddNew() {
   };
 
   const deleteGroup = async (id) => {
-    await axiosClient.delete(`${ENDPOINTS.GROUPS}/${id}`);
+    try {
+      await axiosClient.delete(`${ENDPOINTS.GROUPS}/${id}`);
+    } catch (err) {
+      if (err.response?.status !== 404) {
+        throw err;
+      }
+    }
     setGroups((prev) => prev.filter((g) => g.id !== id));
     // Also clear selection in projGroups if deleted group was selected
     setProjGroups((prev) =>
