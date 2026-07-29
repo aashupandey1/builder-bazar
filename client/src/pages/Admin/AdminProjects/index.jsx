@@ -52,7 +52,7 @@ export default function AdminProjects() {
   };
 
   const handleDeleteTemplate = async (id) => {
-    if (!window.confirm('Ye creative delete karna hai?')) return;
+    if (!window.confirm('Delete this creative?')) return;
     await axiosClient.delete(`${ENDPOINTS.TEMPLATES}/${id}`);
     loadProjectTemplates(expandedId);
     refresh();
@@ -61,7 +61,7 @@ export default function AdminProjects() {
 
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete karna hai?')) return;
+    if (!window.confirm('Delete this?')) return;
     await axiosClient.delete(`${ENDPOINTS.LISTINGS}/${id}`);
     refresh();
   };
@@ -199,7 +199,7 @@ export default function AdminProjects() {
               </div>
             );
           })}
-        {q && !visible.length && <p className="property-card__meta">Koi project nahi mila.</p>}
+        {q && !visible.length && <p className="property-card__meta">No projects found.</p>}
       </div>
     </div>
   );

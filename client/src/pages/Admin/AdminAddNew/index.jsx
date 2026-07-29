@@ -266,11 +266,11 @@ export default function AdminAddNew() {
     // Fetch real group entities (id + name + logo_url) for GroupPickerField
     axiosClient.get(ENDPOINTS.GROUPS)
       .then((res) => setGroups(res.data.data))
-      .catch(() => {});
+      .catch(() => { });
     // Fetch listing-field suggestions (names, locations, secondaryNames)
     axiosClient.get(ENDPOINTS.LISTING_SUGGESTIONS)
       .then((res) => setSuggestions((prev) => ({ ...prev, ...res.data.data })))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const toggle = (section) => setOpen((prev) => (prev === section ? null : section));
@@ -331,7 +331,7 @@ export default function AdminAddNew() {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!tplForm.file) return setTplStatus('Ek file select karo');
+    if (!tplForm.file) return setTplStatus('Please select a file');
     const data = new FormData();
     data.append('title', tplForm.title);
     data.append('subtitle', tplForm.subtitle);
@@ -354,15 +354,15 @@ export default function AdminAddNew() {
 
     // Every group must have a Builder/Group selected (entity id, not free text)
     const missingGroup = projGroups.find((g) => !g.groupId);
-    if (missingGroup) return setProjStatus('Har group mein Builder/Group select karna zaroori hai');
+    if (missingGroup) return setProjStatus('Please select a Builder/Group for every entry');
 
     // Every group must have a Primary Name
     const missingName = projGroups.find((g) => !g.name.trim());
-    if (missingName) return setProjStatus('Har group mein Primary Name zaroori hai');
+    if (missingName) return setProjStatus('Primary Name is required for every entry');
 
     // Every group must have at least one file
     const missingFiles = projGroups.find((g) => g.files.length === 0);
-    if (missingFiles) return setProjStatus('Har group mein kam se kam 1 media file zaroori hai');
+    if (missingFiles) return setProjStatus('At least 1 media file is required for every entry');
 
     setProjStatus('Saving...');
     try {

@@ -60,7 +60,7 @@ export default function AdminTemplates() {
   const refresh = () => { loadPage(0, true); loadStats(); };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete karna hai?')) return;
+    if (!window.confirm('Delete this?')) return;
     await axiosClient.delete(`${ENDPOINTS.TEMPLATES}/${id}`);
     refresh();
   };
