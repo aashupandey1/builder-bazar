@@ -116,7 +116,7 @@ export default function Projects() {
               </div>
               <div className="projects__info">
                 <p className="projects__name">{p.name}</p>
-                {(p.secondary_name || p.location) && (
+                {groupId && (p.secondary_name || p.location) && (
                   <p className="projects__location">
                     {[p.secondary_name, p.location].filter(Boolean).join(' — ')}
                   </p>
