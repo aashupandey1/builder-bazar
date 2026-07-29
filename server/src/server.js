@@ -1,3 +1,4 @@
+require('./instrument');
 const env = require('./core/config/env');
 const app = require('./app');
 

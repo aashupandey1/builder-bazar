@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const rateLimiter = require('./core/middleware/rateLimiter');
 const errorHandler = require('./core/middleware/error');
 const auth = require('./core/middleware/auth');
+const Sentry = require('./instrument');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -29,6 +30,7 @@ app.use('/api/v1/branding', auth, require('./modules/branding/branding.routes'))
 app.use('/api/v1/notification-settings', auth, require('./modules/notification-settings/notification-settings.routes'));
 app.use('/api/v1/notifications', auth, require('./modules/notification/notification.routes'));
 
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 module.exports = app;
