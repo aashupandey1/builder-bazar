@@ -2,7 +2,10 @@ const service = require('./listing.service');
 
 module.exports.list = async (req, res, next) => {
   try {
-    const data = await service.list();
+    const data = await service.list({
+      grouped: req.query.grouped,
+      groupId: req.query.group_id,
+    });
     res.json({ success: true, data });
   } catch (err) {
     next(err);

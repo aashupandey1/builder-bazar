@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../components/layout/Header';
 import SearchBar from '../../components/common/SearchBar';
 import BottomNav from '../../components/layout/BottomNav';
@@ -17,13 +17,22 @@ export default function Projects() {
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PREVIEW_COUNT);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const groupId = location.state?.groupId;
+  const groupName = location.state?.groupName;
 
   useEffect(() => {
-    axiosClient.get(ENDPOINTS.LISTINGS)
+    setLoading(true);
+    setActiveFilter('All');
+    setSearch('');
+    setVisibleCount(PREVIEW_COUNT);
+    const params = groupId ? { group_id: groupId } : { grouped: true };
+    axiosClient.get(ENDPOINTS.LISTINGS, { params })
       .then((res) => setListings(res.data.data))
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [groupId]);
 
   const locations = ['All', ...new Set(listings.map((p) => p.location).filter(Boolean))];
 
@@ -52,6 +61,16 @@ export default function Projects() {
   return (
     <div className="projects">
       <Header title="All Projects" />
+      
+      {groupId && (
+        <div className="projects__group-bar">
+          <button type="button" className="projects__back-btn" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <h2 className="projects__group-title">{groupName}</h2>
+        </div>
+      )}
+
       <SearchBar placeholder="Search projects..." value={search} onChange={handleSearchChange} />
 
       <div className="projects__filters">
@@ -81,13 +100,19 @@ export default function Projects() {
             <button
               key={p.id}
               className="projects__card"
-              onClick={() => navigate('/gallery', { state: { listingId: p.id, name: p.name } })}
+              onClick={() => {
+                if (groupId) {
+                  navigate('/gallery', { state: { listingId: p.id, name: p.name } });
+                } else {
+                  navigate('/projects', { state: { groupId: p.id, groupName: p.name } });
+                }
+              }}
             >
               <div
                 className="projects__thumb"
-                style={p.thumbnail_url ? { backgroundImage: `url(${p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                style={(p.logo_url || p.thumbnail_url) ? { backgroundImage: `url(${p.logo_url || p.thumbnail_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
-                {!p.thumbnail_url && p.name.charAt(0).toUpperCase()}
+                {!(p.logo_url || p.thumbnail_url) && p.name.charAt(0).toUpperCase()}
               </div>
               <div className="projects__info">
                 <p className="projects__name">{p.name}</p>

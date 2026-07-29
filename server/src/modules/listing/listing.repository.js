@@ -6,7 +6,35 @@ const toThumbnail = (url, type) => {
   return url.replace('/video/upload/', '/video/upload/so_0/').replace(/\.[^/.]+$/, '.jpg');
 };
 
-module.exports.findAll = async () => {
+module.exports.findAll = async ({ grouped, groupId } = {}) => {
+  if (grouped === 'true' || grouped === true) {
+    const result = await db.query(
+      `SELECT 
+         COALESCE(p.group_id, -p.id) AS id,
+         p.group_id,
+         COALESCE(g.name, MAX(p.name)) AS name,
+         g.logo_url AS logo_url,
+         g.logo_url AS thumbnail_url,
+         MAX(p.location) AS location,
+         MAX(p.secondary_name) AS secondary_name,
+         COUNT(t.id)::int AS template_count
+       FROM listings p
+       LEFT JOIN groups g ON g.id = p.group_id
+       LEFT JOIN templates t ON t.listing_id = p.id
+       GROUP BY COALESCE(p.group_id, -p.id), p.group_id, g.name, g.logo_url
+       ORDER BY name ASC`
+    );
+    return result.rows;
+  }
+
+  const conditions = [];
+  const params = [];
+  if (groupId) {
+    params.push(groupId);
+    conditions.push(`p.group_id = $${params.length}`);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
   const result = await db.query(
     `SELECT p.id, p.name, p.location, p.address, p.secondary_name, p.category, p.group_id,
             g.name AS group_name, g.logo_url AS group_logo_url,
@@ -18,8 +46,10 @@ module.exports.findAll = async () => {
      LEFT JOIN LATERAL (
        SELECT file_url, type FROM templates t2 WHERE t2.listing_id = p.id ORDER BY t2.created_at DESC LIMIT 1
      ) latest ON true
+     ${where}
      GROUP BY p.id, g.name, g.logo_url, latest.file_url, latest.type
-     ORDER BY p.created_at DESC`
+     ORDER BY p.created_at DESC`,
+    params
   );
   return result.rows.map(({ thumbnail_type, ...row }) => ({
     ...row,

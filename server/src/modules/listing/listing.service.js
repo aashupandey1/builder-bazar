@@ -3,7 +3,7 @@ const templateRepository = require('../template/template.repository');
 const fs = require('fs/promises');
 const path = require('path');
 
-module.exports.list = () => repository.findAll();
+module.exports.list = (filters) => repository.findAll(filters);
 module.exports.suggestions = () => repository.findSuggestions();
 module.exports.create = (data) => repository.create(data);
 

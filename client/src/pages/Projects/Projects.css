@@ -105,3 +105,35 @@
   color: #2f5fe0;
   cursor: pointer;
 }
+
+.projects__group-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #f1f4f9;
+  background: #f8f9fc;
+  margin-bottom: 12px;
+}
+
+.projects__back-btn {
+  background: none;
+  border: none;
+  color: #2f5fe0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.projects__back-btn:hover {
+  background: #eef2ff;
+}
+
+.projects__group-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1a2b;
+  margin: 0;
+}
