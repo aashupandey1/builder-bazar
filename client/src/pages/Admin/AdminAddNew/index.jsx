@@ -369,6 +369,7 @@ export default function AdminAddNew() {
     setProjStatus('Saving...');
     let anyFailed = false;
     for (const grp of projGroups) {
+      if (grp.status === 'done') continue;
       updateGroup(grp.key, { status: 'uploading', statusMessage: '' });
       try {
         // Create a separate listing for each group, now with group_id FK
