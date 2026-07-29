@@ -2,7 +2,7 @@ const db = require('../../core/config/db');
 
 module.exports.findAll = async () => {
   const result = await db.query(
-    `SELECT id, name, logo_url, created_at FROM groups ORDER BY name ASC`
+    `SELECT id, name, logo_url, created_at FROM groups ORDER BY LOWER(name) ASC`
   );
   return result.rows;
 };
@@ -11,7 +11,7 @@ module.exports.findAll = async () => {
 // Returns id + logo_url so UI can render logo thumbnails in the picker.
 module.exports.findSuggestions = async () => {
   const result = await db.query(
-    `SELECT id, name, logo_url FROM groups ORDER BY name ASC`
+    `SELECT id, name, logo_url FROM groups ORDER BY LOWER(name) ASC`
   );
   return result.rows;
 };

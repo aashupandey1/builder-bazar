@@ -22,7 +22,7 @@ module.exports.findAll = async ({ grouped, groupId } = {}) => {
        LEFT JOIN groups g ON g.id = p.group_id
        LEFT JOIN templates t ON t.listing_id = p.id
        GROUP BY COALESCE(p.group_id, -p.id), p.group_id, g.name, g.logo_url
-       ORDER BY name ASC`
+       ORDER BY LOWER(COALESCE(g.name, MAX(p.name))) ASC`
     );
     return result.rows;
   }
@@ -48,7 +48,7 @@ module.exports.findAll = async ({ grouped, groupId } = {}) => {
      ) latest ON true
      ${where}
      GROUP BY p.id, g.name, g.logo_url, latest.file_url, latest.type
-     ORDER BY p.created_at DESC`,
+     ORDER BY LOWER(p.name) ASC`,
     params
   );
   return result.rows.map(({ thumbnail_type, ...row }) => ({
